@@ -1,7 +1,7 @@
 #include "shader.h"
 #include <iostream>
 
-GLuint shader_compile(GLuint type, const char *src);
+static GLuint shader_compile(GLuint type, const char *src);
 
 shader_t::shader_t(std::stringstream& src_vertex, std::stringstream& src_fragment) {
   GLuint vertex_shader = shader_compile(GL_VERTEX_SHADER, src_vertex.str().c_str());
@@ -20,7 +20,7 @@ shader_t::shader_t(std::stringstream& src_vertex, std::stringstream& src_fragmen
     static char info[1024];
     glGetProgramInfoLog(m_program, sizeof(info), NULL, info);
     std::cerr << "error: shader_compile: " << info;
-    throw std::runtime_error("Failed to link shader.");
+    throw std::runtime_error("failed to link shader");
   }
   
   glDetachShader(m_program, vertex_shader);
@@ -45,7 +45,7 @@ GLuint shader_compile(GLuint type, const char *src) {
     static GLchar info[1024];
     glGetShaderInfoLog(shader, sizeof(info), NULL, info);
     std::cerr << "error: shader_compile: " << info;
-    throw std::runtime_error("Failed to compile shader.");
+    throw std::runtime_error("failed to compile shader");
   }
   
   return shader;

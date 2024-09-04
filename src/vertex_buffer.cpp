@@ -24,12 +24,13 @@ void vertex_buffer_t::bind() {
 
 mesh_t vertex_buffer_t::push(std::vector<vertex_t> vertices) {
   if (m_offset + (int) vertices.size() > m_max_vertices) {
-    throw std::runtime_error("Out of memory.");
+    throw std::runtime_error("vertex buffer out of memory");
   }
   
   mesh_t mesh = mesh_t(m_offset, (int) vertices.size());
   
   m_offset += (int) vertices.size();
+  bind();
   glBufferSubData(
     GL_ARRAY_BUFFER,
     mesh.get_offset() * sizeof(vertex_t),

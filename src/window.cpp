@@ -5,7 +5,7 @@
 void window_t::init() {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::cerr << "error: SDL_Init: " << SDL_GetError();
-    throw std::runtime_error("Failed to initialise SDL.");
+    throw std::runtime_error("failed to initialise SDL");
   }
 }
 
@@ -21,18 +21,18 @@ window_t::window_t(int width, int height, const char *title) {
   
   if (!m_window) {
     std::cerr << "error: SDL_CreateWindow: " << SDL_GetError();
-    throw std::runtime_error("Failed to create SDL Window.");
+    throw std::runtime_error("failed to create SDL window");
   }
   
   m_gl = SDL_GL_CreateContext(m_window);
   
   if (!m_gl) {
     std::cerr << "error: SDL_GL_CreateContext: " << SDL_GetError();
-    throw std::runtime_error("Failed to initialize SDL GL Context.");
+    throw std::runtime_error("failed to initialize SDL GL Context");
   }
   
   if (!gladLoadGLES2Loader((GLADloadproc) SDL_GL_GetProcAddress)) {
-    throw std::runtime_error("Failed to initialize GLAD.");
+    throw std::runtime_error("failed to initialize GLAD");
   }
 }
 
