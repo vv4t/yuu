@@ -10,6 +10,7 @@ private:
 
 public:
   texture_t(const char *src);
+  texture_t(int width, int height, GLuint format, GLuint type);
   void bind(int channel);
 };
 

@@ -8,6 +8,7 @@
 #include "vertex.h"
 #include "vertex_buffer.h"
 #include "texture.h"
+#include "target.h"
 
 int main() {
   window_t::init();
@@ -17,10 +18,11 @@ int main() {
   glCullFace(GL_BACK);
   
   vertex_buffer_t vertex_buffer(1024);
-  vertex_buffer.bind();
   
   texture_t texture("assets/thing.jpg");
-  texture.bind(0);
+  texture_t buffer(800, 600, GL_RGBA, GL_UNSIGNED_BYTE);
+  
+  target_t to_buffer(1, GL_COLOR_ATTACHMENT0, buffer);
   
   std::vector<vertex_t> vertices;
   vertices.push_back(vertex_t(vec3(+1, +1, 0), vec2(1, 1)));
@@ -35,11 +37,20 @@ int main() {
   src_vertex << std::ifstream("assets/shader.vert").rdbuf();
   src_fragment << std::ifstream("assets/shader.frag").rdbuf();
   shader_t shader(src_vertex, src_fragment);
+  
+  vertex_buffer.bind();
   shader.bind();
+  texture.bind(0);
   
   while (window.poll()) {
     glClear(GL_COLOR_BUFFER_BIT);
+    
+    to_buffer.bind();
     mesh.draw();
+    to_buffer.unbind();
+    buffer.bind(0);
+    mesh.draw();
+    
     window.swap();
   }
   
