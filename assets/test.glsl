@@ -1,0 +1,1 @@
+#define BRIGHTNESS 0.2

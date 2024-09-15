@@ -1,9 +1,12 @@
 #include "shader.h"
 #include <iostream>
+#include <fstream>
+#include <regex>
+#include <filesystem>
 
-static GLuint shader_compile(GLuint type, const char *src);
+static GLuint shader_compile(GLuint type, const char* src);
 
-shader_t::shader_t(std::stringstream& src_vertex, std::stringstream& src_fragment) {
+shader_t::shader_t(const std::stringstream& src_vertex, const std::stringstream& src_fragment) {
   GLuint vertex_shader = shader_compile(GL_VERTEX_SHADER, src_vertex.str().c_str());
   GLuint fragment_shader = shader_compile(GL_FRAGMENT_SHADER, src_fragment.str().c_str());
   
@@ -29,11 +32,19 @@ shader_t::shader_t(std::stringstream& src_vertex, std::stringstream& src_fragmen
   glDeleteShader(fragment_shader);
 }
 
-void shader_t::bind() {
+void shader_t::bind() const {
   glUseProgram(m_program);
 }
 
-GLuint shader_compile(GLuint type, const char *src) {
+GLuint shader_t::get_program() const {
+  return m_program;
+}
+
+shader_t::~shader_t() {
+  glDeleteProgram(m_program);
+}
+
+GLuint shader_compile(GLuint type, const char* src) {
   const char *all[] = {
     "#version 300 es\n",
     "precision mediump float;\n",
@@ -55,4 +66,26 @@ GLuint shader_compile(GLuint type, const char *src) {
   }
   
   return shader;
+}
+
+std::stringstream shader_read_source(const char* src) {
+  std::stringstream ss;
+  std::ifstream in = std::ifstream(src);
+  
+  std::string line;
+  while (std::getline(in, line)) {
+    std::regex rgx("^\\s*#\\s*pragma include\\s+[<\"]([^>\"]*)[>\"]\\s*");
+    std::smatch matches;
+
+    if(std::regex_match(line, matches, rgx)) {
+      std::filesystem::path file(matches[1]);
+      std::filesystem::path base = std::filesystem::path(src).parent_path();
+      std::filesystem::path full = base / file;
+      ss << shader_read_source(full.u8string().c_str()).rdbuf() << std::endl;
+    } else {
+      ss << line;
+    }
+  }
+  
+  return ss;
 }

@@ -1,8 +1,10 @@
+#pragma include "test.glsl"
+
 in vec2 vs_uv;
-uniform sampler2D sampler;
+
 out vec4 frag_color;
 
 void main()
 {
-  frag_color = texture(sampler, vs_uv) * 1.0;
+  frag_color = vec4(vs_uv * BRIGHTNESS, 0.0, 1.0);
 }

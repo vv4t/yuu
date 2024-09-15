@@ -9,8 +9,12 @@ private:
   GLuint m_program;
 
 public:
-  shader_t(std::stringstream& src_vertex, std::stringstream& src_fragment);
-  void bind();
+  shader_t(const std::stringstream& src_vertex, const std::stringstream& src_fragment);
+  ~shader_t();
+  void bind() const;
+  GLuint get_program() const;
 };
+
+std::stringstream shader_read_source(const char* src);
 
 #endif
