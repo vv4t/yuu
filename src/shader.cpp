@@ -74,7 +74,7 @@ std::stringstream shader_read_source(const char* src) {
   
   std::string line;
   while (std::getline(in, line)) {
-    std::regex rgx("^\\s*#\\s*pragma include\\s+[<\"]([^>\"]*)[>\"]\\s*");
+    std::regex rgx("^\\s*#\\s*pragma use\\s+[<\"]([^>\"]*)[>\"]\\s*");
     std::smatch matches;
 
     if(std::regex_match(line, matches, rgx)) {
@@ -83,7 +83,7 @@ std::stringstream shader_read_source(const char* src) {
       std::filesystem::path full = base / file;
       ss << shader_read_source(full.u8string().c_str()).rdbuf() << std::endl;
     } else {
-      ss << line;
+      ss << line << std::endl;
     }
   }
   

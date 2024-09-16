@@ -22,13 +22,13 @@ int main() {
   vertex_buffer_t vertex_buffer(256);
   vertex_buffer.bind();
   
-  shader_scene_t scene("assets/shader.frag");
+  shader_scene_t scene("assets/test.glsl");
   
-  scene.load(vertex_buffer);
+  scene.load(input, vertex_buffer);
   
   while (window.poll()) {
     glClear(GL_COLOR_BUFFER_BIT);
-    scene.render();
+    scene.render(input);
     window.swap();
   }
   
