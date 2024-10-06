@@ -53,6 +53,7 @@ GLuint texture_t::get_texture() const {
 }
 
 texture_t::~texture_t() {
+  std::cout << "true" << std::endl;
   glDeleteTextures(1, &m_texture);
 }
 

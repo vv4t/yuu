@@ -10,7 +10,7 @@
 #include "texture.h"
 #include "vertex_buffer.h"
 #include "uniform_buffer.h"
-#include "shader_scene.h"
+#include "scene.h"
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -22,8 +22,10 @@ int main() {
   vertex_buffer_t vertex_buffer(256);
   vertex_buffer.bind();
   
-  shader_scene_t scene("assets/test.glsl");
-  
+  scene_t scene;
+  scene.add_image("test", "assets/1.jpg");
+  scene.add_shader({ "first" }, "forest", "assets/test.glsl");
+  scene.add_pass({ "test" }, "forest");
   scene.load(input, vertex_buffer);
   
   while (window.poll()) {
