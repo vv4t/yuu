@@ -1,7 +1,13 @@
 #include "target.h"
 #include <vector>
+#include <iostream>
 
 target_t::target_t(std::vector<binding_t> bindings) {
+  if (bindings.size() == 0) {
+    m_framebuffer = 0;
+    return;
+  }
+  
   glGenFramebuffers(1, &m_framebuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
   
@@ -27,5 +33,7 @@ void target_t::unbind() {
 }
 
 target_t::~target_t() {
-  glDeleteFramebuffers(1, &m_framebuffer);
+  if (m_framebuffer != 0) {
+    glDeleteFramebuffers(1, &m_framebuffer);
+  }
 }

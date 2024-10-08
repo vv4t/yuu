@@ -24,8 +24,11 @@ int main() {
   
   scene_t scene;
   scene.add_image("test", "assets/1.jpg");
-  scene.add_shader({ "first" }, "forest", "assets/test.glsl");
-  scene.add_pass({ "test" }, "forest");
+  scene.add_image("other", "assets/2.jpg");
+  scene.add_buffer("buf", 640, 480);
+  scene.add_shader({ "first", "second" }, "forest", "assets/test.glsl");
+  scene.add_pass({ "test", "other" }, "forest", { "buf" });
+  scene.add_pass({ "buf", "test" }, "forest", {});
   scene.load(input, vertex_buffer);
   
   while (window.poll()) {

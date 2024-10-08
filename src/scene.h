@@ -22,7 +22,8 @@ public:
   scene_t();
   void add_shader(std::vector<const char*> channels, const char *name, const char *src);
   void add_image(const char *name, const char *src);
-  void add_pass(std::vector<const char*> input, const char *shader);
+  void add_buffer(const char *name, int width, int height);
+  void add_pass(std::vector<const char*> input, const char *shader, std::vector<const char*> output);
   void load(input_t& input, vertex_buffer_t& vertex_buffer);
   void render(const input_t& input);
 };

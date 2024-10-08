@@ -11,7 +11,7 @@ struct ubo_input {
 scene_t::scene_t()
   : m_input_buffer(0, "ubo_input", sizeof(struct ubo_input)),
     m_time(0.0) {
-  
+  m_passes.reserve(16);
 }
 
 void scene_t::add_shader(std::vector<const char*> channels, const char *name, const char *src) {
@@ -50,14 +50,22 @@ void scene_t::add_image(const char* name, const char* src) {
   m_textures.try_emplace(name, src);
 }
 
-void scene_t::add_pass(std::vector<const char*> input, const char *shader) {
+void scene_t::add_buffer(const char *name, int width, int height) {
+  m_textures.try_emplace(name, width, height, GL_RGBA, GL_RGBA16F, GL_FLOAT);
+}
+
+void scene_t::add_pass(std::vector<const char*> input, const char *shader, std::vector<const char*> output) {
   std::vector<texture_ref_t> textures;
-  
   for (const char* name : input) {
     textures.push_back(m_textures.at(name));
   }
   
-  m_passes.push_back(pass_t(textures, m_shaders.at(shader)));
+  std::vector<binding_t> bindings;
+  for (std::size_t i = 0; i < output.size(); i++) {
+    bindings.push_back(binding_t(GL_COLOR_ATTACHMENT0 + i, m_textures.at(output[i])));
+  }
+  
+  m_passes.emplace_back(textures, m_shaders.at(shader), bindings);
 }
 
 void scene_t::load(input_t& input, vertex_buffer_t& vertex_buffer) {
