@@ -11,7 +11,6 @@ private:
 public:
   quad_mesh_t();
   ~quad_mesh_t();
-  void bind();
   void draw();
 };
 

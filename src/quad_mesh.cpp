@@ -23,11 +23,8 @@ quad_mesh_t::quad_mesh_t() {
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (float*) 0 + 2);
 }
 
-void quad_mesh_t::bind() {
-  glBindVertexArray(m_vao);
-}
-
 void quad_mesh_t::draw() {
+  glBindVertexArray(m_vao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 

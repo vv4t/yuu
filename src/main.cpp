@@ -1,12 +1,8 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <vector>
-#include "input.h"
 #include "window.h"
-#include "shader.h"
-#include "target.h"
-#include "texture.h"
-#include "uniform_buffer.h"
+#include "ubo_input.h"
 #include "scene.h"
 #include <yaml/Yaml.hpp>
 
@@ -17,11 +13,14 @@ int main() {
   Yaml::Node root;
   Yaml::Parse(root, "assets/scene.yml");
   
-  input_t input;
-  window_t window(WIDTH, HEIGHT, "nui", input);
-  quad_mesh_t quad_mesh;
+  window_t window(WIDTH, HEIGHT, "nui");
+  ubo_input_t ubo_input(0);
+  quad_mesh_t mesh;
+  
+  window.add_input(ubo_input);
   
   scene_t scene(
+    ubo_input,
     {
       scene_t::image_data_t("test", "assets/1.jpg"),
       scene_t::image_data_t("other", "assets/2.jpg")
@@ -35,11 +34,9 @@ int main() {
     }
   );
   
-  quad_mesh.bind();
-  
   while (window.poll()) {
     glClear(GL_COLOR_BUFFER_BIT);
-    scene.render(quad_mesh, input);
+    scene.render(mesh);
     window.swap();
   }
   

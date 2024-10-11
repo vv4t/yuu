@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <iostream>
 
-window_t::window_t(int width, int height, const char *title, input_t& input) : m_input(input) {
+window_t::window_t(int width, int height, const char *title) {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::cerr << "error: SDL_Init: " << SDL_GetError();
     throw std::runtime_error("failed to initialise SDL");
@@ -40,6 +40,10 @@ window_t::window_t(int width, int height, const char *title, input_t& input) : m
   m_is_cursor_lock = false;
 }
 
+void window_t::add_input(input_ref_t input) {
+  m_input.push_back(input);
+}
+
 void window_t::swap() {
   SDL_GL_SwapWindow(m_window);
 }
@@ -51,10 +55,12 @@ bool window_t::poll() {
     case SDL_QUIT:
       return false;
     case SDL_KEYUP:
-      m_input.key_event(event.key.keysym.sym, false);
+      for (input_t& input : m_input)
+        input.on_key_press(event.key.keysym.sym, false);
       break;
     case SDL_KEYDOWN:
-      m_input.key_event(event.key.keysym.sym, true);
+      for (input_t& input : m_input)
+        input.on_key_press(event.key.keysym.sym, true);
       break;
     case SDL_MOUSEMOTION:
       if (m_is_cursor_lock) {
@@ -64,7 +70,8 @@ bool window_t::poll() {
         m_mouse_x = event.motion.x;
         m_mouse_y = event.motion.y;
       }
-      m_input.move_event(m_mouse_x / (float) m_width, 1.0 - m_mouse_y / (float) m_height);
+      for (input_t& input : m_input)
+        input.on_mouse_move(m_mouse_x / (float) m_width, 1.0 - m_mouse_y / (float) m_height);
       break;
     case SDL_TEXTINPUT:
     case SDL_MOUSEBUTTONUP:

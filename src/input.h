@@ -1,25 +1,15 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <array>
+#include <utility>
 
 class input_t {
-private:
-  std::array<float, 8> m_axis;
-  
-  int m_move1;
-  int m_move2;
-  
-  std::array<std::pair<int, int>, 16> m_keys;
-  int m_num_keys;
-
 public:
-  input_t();
-  float get_axis(int axis) const;
-  void bind_key(int axis, int key);
-  void bind_move(int axis1, int axis2);
-  void key_event(int key, bool action);
-  void move_event(float x, float y);
+  input_t() {}
+  virtual void on_key_press(int key, bool action) = 0;
+  virtual void on_mouse_move(float x, float y) = 0;
 };
+
+using input_ref_t = std::reference_wrapper<input_t>;
 
 #endif

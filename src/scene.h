@@ -3,7 +3,7 @@
 
 #include "target.h"
 #include "input.h"
-#include "uniform_buffer.h"
+#include "ubo_input.h"
 #include "texture.h"
 #include "shader.h"
 #include "quad_mesh.h"
@@ -50,13 +50,14 @@ public:
   };
 
   scene_t(
+    ubo_input_t& ubo_input,
     std::vector<image_data_t> images,
     std::vector<buffer_data_t> buffers,
     std::vector<shader_data_t> shaders,
     std::vector<pass_data_t> passes
   );
   
-  void render(quad_mesh_t& quad_mesh, input_t& input);
+  void render(quad_mesh_t& mesh);
 
 private:
   class pass_t {
@@ -82,16 +83,14 @@ private:
     }
   };
   
-  uniform_buffer_t m_data;
   std::map<const char*, shader_t> m_shaders;
   std::map<const char*, texture_t> m_textures;
   std::vector<pass_t> m_passes;
-  float m_time;
   
-  void add_shader(shader_data_t data);
-  void add_image(image_data_t data);
-  void add_buffer(buffer_data_t data);
-  void add_pass(pass_data_t data);
+  void shader_add(shader_data_t data, ubo_input_t& ubo_input);
+  void image_add(image_data_t data);
+  void buffer_add(buffer_data_t data);
+  void pass_add(pass_data_t data);
 };
 
 #endif

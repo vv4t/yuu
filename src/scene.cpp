@@ -4,52 +4,41 @@
 #include <iostream>
 #include "math3d.h"
 
-struct ubo_input {
-  vec2 mouse;
-  float time;
-};
-
 scene_t::scene_t(
+  ubo_input_t& ubo_input,
   std::vector<image_data_t> images,
   std::vector<buffer_data_t> buffers,
   std::vector<shader_data_t> shaders,
   std::vector<pass_data_t> passes
-) : m_data(0, "ubo_input", sizeof(struct ubo_input)), m_time(0.0) {
+) {
   m_passes.reserve(passes.size());
   
   for (image_data_t image : images) {
-    add_image(image);
+    image_add(image);
   }
   
   for (buffer_data_t buffer : buffers) {
-    add_buffer(buffer);
+    buffer_add(buffer);
   }
   
   for (shader_data_t shader : shaders) {
-    add_shader(shader);
+    shader_add(shader, ubo_input);
   }
   
   for (pass_data_t pass : passes) {
-    add_pass(pass);
+    pass_add(pass);
   }
 }
 
-void scene_t::render(quad_mesh_t& quad_mesh, input_t& input) {
-  m_time += 0.015;
-  
-  struct ubo_input data;
-  data.mouse = (vec2(input.get_axis(0), input.get_axis(1)) * 2.0 - 1.0) * mat2(vec2(800.0 / 600.0, 0), vec2(0, 1));
-  data.time = m_time;
-  m_data.sub(&data, 0, sizeof(data));
-  
+void scene_t::render(quad_mesh_t& mesh) {
   for (pass_t& pass : m_passes) {
     pass.begin();
-    quad_mesh.draw();
+    mesh.draw();
     pass.end();
   }
 }
 
-void scene_t::add_shader(shader_data_t data) {
+void scene_t::shader_add(shader_data_t data, ubo_input_t& ubo_input) {
   std::stringstream src_vertex, src_fragment;
   src_vertex << R"(
 layout (location = 0) in vec3 v_pos;
@@ -67,6 +56,7 @@ void main() {
   m_shaders.try_emplace(data.name, src_vertex, src_fragment);
   
   shader_t& shader = m_shaders.at(data.name);
+  ubo_input.attach_shader(shader);
   shader.bind();
   for (std::size_t i = 0; i < data.channels.size(); i++) {
     GLuint location = shader.get_uniform_location(data.channels[i]);
@@ -74,15 +64,15 @@ void main() {
   }
 }
 
-void scene_t::add_image(image_data_t data) {
+void scene_t::image_add(image_data_t data) {
   m_textures.try_emplace(data.name, data.src);
 }
 
-void scene_t::add_buffer(buffer_data_t data) {
+void scene_t::buffer_add(buffer_data_t data) {
   m_textures.try_emplace(data.name, data.width, data.height, GL_RGBA, GL_RGBA16F, GL_FLOAT);
 }
 
-void scene_t::add_pass(pass_data_t data) {
+void scene_t::pass_add(pass_data_t data) {
   std::vector<texture_ref_t> textures;
   for (const char* name : data.input) {
     textures.push_back(m_textures.at(name));
