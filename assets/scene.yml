@@ -1,18 +1,26 @@
 scene:
   images:
-    first: 1.png
-    second: 2.png
+    first: assets/1.jpg
+    second: assets/2.jpg
   buffers:
-    test:
-      width: 640
-      height: 480
-  shaderes:
+    - ping
+    - pong
+  shaders:
     forest:
-      src: test.glsl
+      src: assets/test.glsl
       channels:
-        - one
-        - two
+        - first
   passes:
     - shader: forest
-      input: first test
-      output: image
+      input:
+        - ping
+      output:
+        - pong
+    - shader: forest
+      input:
+        - pong
+      output:
+        - ping
+    - shader: forest
+      input:
+        - ping

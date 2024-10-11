@@ -13,39 +13,39 @@ class scene_t {
 public:
   class image_data_t {
   public:
-    const char *name;
-    const char *src;
-    inline image_data_t(const char *_name, const char *_src)
+    std::string name;
+    std::string src;
+    inline image_data_t(std::string _name, std::string _src)
       : name(_name), src(_src) {}
   };
 
   class buffer_data_t {
   public:
-    const char *name;
+    std::string name;
     int width;
     int height;
-    inline buffer_data_t(const char* _name, int _width, int _height)
+    inline buffer_data_t(std::string _name, int _width, int _height)
       : name(_name), width(_width), height(_height) {}
   };
 
   class shader_data_t {
   public:
-    const char *name;
-    std::vector<const char*> channels;
-    const char *src;
+    std::string name;
+    std::vector<std::string> channels;
+    std::string src;
     
-    inline shader_data_t(const char *_name, std::vector<const char*> _channels, const char *_src)
+    inline shader_data_t(std::string _name, std::vector<std::string> _channels, std::string _src)
       : name(_name), channels(_channels), src(_src) {}
       
   };
 
   class pass_data_t {
   public:
-    std::vector<const char*> input;
-    const char *shader;
-    std::vector<const char*> output;
+    std::vector<std::string> input;
+    std::string shader;
+    std::vector<std::string> output;
     
-    pass_data_t(std::vector<const char*> _input, const char *_shader, std::vector<const char*> _output)
+    pass_data_t(std::vector<std::string> _input, std::string _shader, std::vector<std::string> _output)
       : input(_input), shader(_shader), output(_output) {}
   };
 
@@ -83,8 +83,8 @@ private:
     }
   };
   
-  std::map<const char*, shader_t> m_shaders;
-  std::map<const char*, texture_t> m_textures;
+  std::map<std::string, shader_t> m_shaders;
+  std::map<std::string, texture_t> m_textures;
   std::vector<pass_t> m_passes;
   
   void shader_add(shader_data_t data, ubo_input_t& ubo_input);
