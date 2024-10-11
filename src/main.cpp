@@ -22,13 +22,22 @@ int main() {
   vertex_buffer_t vertex_buffer(256);
   vertex_buffer.bind();
   
-  scene_t scene;
-  scene.add_image("test", "assets/1.jpg");
-  scene.add_image("other", "assets/2.jpg");
-  scene.add_buffer("buf", 640, 480);
-  scene.add_shader({ "first", "second" }, "forest", "assets/test.glsl");
-  scene.add_pass({ "test", "other" }, "forest", { "buf" });
-  scene.add_pass({ "buf", "test" }, "forest", {});
+  scene_t scene(
+    {
+      scene_t::image_data_t("test", "assets/1.jpg"),
+      scene_t::image_data_t("other", "assets/2.jpg")
+    },
+    {
+      scene_t::buffer_data_t("buffer", 640, 480)
+    },
+    {
+      scene_t::shader_data_t("test", { "first", "second" }, "assets/test.glsl")
+    },
+    {
+      scene_t::pass_data_t({ "test", "other" }, "test", { "buffer" }),
+      scene_t::pass_data_t({ "buffer", "other" }, "test", {})
+    }
+  );
   scene.load(input, vertex_buffer);
   
   while (window.poll()) {

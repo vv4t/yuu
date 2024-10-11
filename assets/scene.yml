@@ -1,0 +1,18 @@
+scene:
+  images:
+    first: 1.png
+    second: 2.png
+  buffers:
+    test:
+      width: 640
+      height: 480
+  shaderes:
+    forest:
+      src: test.glsl
+      channels:
+        - one
+        - two
+  passes:
+    - shader: forest
+      input: first test
+      output: image
