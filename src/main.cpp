@@ -11,11 +11,15 @@
 #include "vertex_buffer.h"
 #include "uniform_buffer.h"
 #include "scene.h"
+#include <yaml/Yaml.hpp>
 
 #define WIDTH 800
 #define HEIGHT 600
 
 int main() {
+  Yaml::Node root;
+  Yaml::Parse(root, "assets/scene.yml");
+  
   input_t input;
   window_t window(WIDTH, HEIGHT, "nui", input);
   

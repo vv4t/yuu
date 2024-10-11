@@ -34,6 +34,21 @@ scene_t::scene_t(
   }
 }
 
+void scene_t::render(const input_t& input) {
+  m_time += 0.015;
+  
+  struct ubo_input data;
+  data.mouse = (vec2(input.get_axis(0), input.get_axis(1)) * 2.0 - 1.0) * mat2(vec2(800.0 / 600.0, 0), vec2(0, 1));
+  data.time = m_time;
+  m_input_buffer.sub(&data, 0, sizeof(data));
+  
+  for (pass_t& pass : m_passes) {
+    pass.begin();
+    m_quad.draw();
+    pass.end();
+  }
+}
+
 void scene_t::add_shader(shader_data_t data) {
   std::stringstream src_vertex, src_fragment;
   src_vertex << R"(
@@ -100,19 +115,4 @@ void scene_t::load(input_t& input, vertex_buffer_t& vertex_buffer) {
   );
   
   input.bind_move(0, 1);
-}
-
-void scene_t::render(const input_t& input) {
-  m_time += 0.015;
-  
-  struct ubo_input data;
-  data.mouse = (vec2(input.get_axis(0), input.get_axis(1)) * 2.0 - 1.0) * mat2(vec2(800.0 / 600.0, 0), vec2(0, 1));
-  data.time = m_time;
-  m_input_buffer.sub(&data, 0, sizeof(data));
-  
-  for (pass_t& pass : m_passes) {
-    pass.begin();
-    m_quad.draw();
-    pass.end();
-  }
 }
