@@ -1,12 +1,12 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include "target.h"
 #include "input.h"
-#include "vertex_buffer.h"
 #include "uniform_buffer.h"
 #include "texture.h"
 #include "shader.h"
-#include "pass.h"
+#include "quad_mesh.h"
 #include <map>
 
 class scene_t {
@@ -44,6 +44,7 @@ public:
     std::vector<const char*> input;
     const char *shader;
     std::vector<const char*> output;
+    
     pass_data_t(std::vector<const char*> _input, const char *_shader, std::vector<const char*> _output)
       : input(_input), shader(_shader), output(_output) {}
   };
@@ -54,12 +55,34 @@ public:
     std::vector<shader_data_t> shaders,
     std::vector<pass_data_t> passes
   );
-  void load(input_t& input, vertex_buffer_t& vertex_buffer);
-  void render(const input_t& input);
+  
+  void render(quad_mesh_t& quad_mesh, input_t& input);
 
 private:
-  mesh_t m_quad;
-  uniform_buffer_t m_input_buffer;
+  class pass_t {
+  private:
+    shader_t& m_shader;
+    std::vector<texture_ref_t> m_input;
+    target_t m_target;
+
+  public:
+    inline pass_t(std::vector<texture_ref_t> input, shader_t& shader, std::vector<target_t::binding_t> output)
+      : m_shader(shader), m_input(input), m_target(output) {}
+    
+    inline void begin() {
+      for (std::size_t i = 0; i < m_input.size(); i++) {
+        m_input[i].get().bind(i);
+      }
+      m_shader.bind();
+      m_target.bind();
+    }
+    
+    inline void end() {
+      m_target.unbind();
+    }
+  };
+  
+  uniform_buffer_t m_data;
   std::map<const char*, shader_t> m_shaders;
   std::map<const char*, texture_t> m_textures;
   std::vector<pass_t> m_passes;

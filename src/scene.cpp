@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "math3d.h"
 
 struct ubo_input {
   vec2 mouse;
@@ -13,8 +14,7 @@ scene_t::scene_t(
   std::vector<buffer_data_t> buffers,
   std::vector<shader_data_t> shaders,
   std::vector<pass_data_t> passes
-) : m_input_buffer(0, "ubo_input", sizeof(struct ubo_input)),
-    m_time(0.0) {
+) : m_data(0, "ubo_input", sizeof(struct ubo_input)), m_time(0.0) {
   m_passes.reserve(passes.size());
   
   for (image_data_t image : images) {
@@ -34,17 +34,17 @@ scene_t::scene_t(
   }
 }
 
-void scene_t::render(const input_t& input) {
+void scene_t::render(quad_mesh_t& quad_mesh, input_t& input) {
   m_time += 0.015;
   
   struct ubo_input data;
   data.mouse = (vec2(input.get_axis(0), input.get_axis(1)) * 2.0 - 1.0) * mat2(vec2(800.0 / 600.0, 0), vec2(0, 1));
   data.time = m_time;
-  m_input_buffer.sub(&data, 0, sizeof(data));
+  m_data.sub(&data, 0, sizeof(data));
   
   for (pass_t& pass : m_passes) {
     pass.begin();
-    m_quad.draw();
+    quad_mesh.draw();
     pass.end();
   }
 }
@@ -58,16 +58,11 @@ layout (location = 1) in vec2 v_uv;
 out vec2 frag_coord;
 
 void main() {
-frag_coord = (v_uv * 2.0 - 1.0) * mat2(800.0 / 600.0, 0.0, 0.0, 1.0);
-gl_Position = vec4(v_pos, 1.0);
+  frag_coord = (v_uv * 2.0 - 1.0) * mat2(800.0 / 600.0, 0.0, 0.0, 1.0);
+  gl_Position = vec4(v_pos, 1.0);
 }
   )";
-  src_fragment << R"(
-layout (std140) uniform ubo_input {
-vec2 mouse;
-float time;
-};
-    )";
+  src_fragment << "layout (std140) uniform ubo_input { vec2 mouse; float time; };";
   src_fragment << shader_read_source(data.src).rdbuf();
   m_shaders.try_emplace(data.name, src_vertex, src_fragment);
   
@@ -77,7 +72,6 @@ float time;
     GLuint location = shader.get_uniform_location(data.channels[i]);
     glUniform1i(location, i);
   }
-  
 }
 
 void scene_t::add_image(image_data_t data) {
@@ -94,25 +88,10 @@ void scene_t::add_pass(pass_data_t data) {
     textures.push_back(m_textures.at(name));
   }
   
-  std::vector<binding_t> bindings;
+  std::vector<target_t::binding_t> bindings;
   for (std::size_t i = 0; i < data.output.size(); i++) {
-    bindings.push_back(binding_t(GL_COLOR_ATTACHMENT0 + i, m_textures.at(data.output[i])));
+    bindings.push_back(target_t::binding_t(GL_COLOR_ATTACHMENT0 + i, m_textures.at(data.output[i])));
   }
   
   m_passes.emplace_back(textures, m_shaders.at(data.shader), bindings);
-}
-
-void scene_t::load(input_t& input, vertex_buffer_t& vertex_buffer) {
-  m_quad = vertex_buffer.push(
-    std::vector<vertex_t> {
-      vertex_t(vec3(+1, +1, 0), vec2(1, 1)),
-      vertex_t(vec3(-1, +1, 0), vec2(0, 1)),
-      vertex_t(vec3(-1, -1, 0), vec2(0, 0)),
-      vertex_t(vec3(+1, -1, 0), vec2(1, 0)),
-      vertex_t(vec3(+1, +1, 0), vec2(1, 1)),
-      vertex_t(vec3(-1, -1, 0), vec2(0, 0))
-    }
-  );
-  
-  input.bind_move(0, 1);
 }
