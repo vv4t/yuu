@@ -1,0 +1,6 @@
+scene:
+  shaders:
+    forest:
+      src: forest.glsl
+  passes:
+    - shader: forest
