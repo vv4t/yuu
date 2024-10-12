@@ -1,0 +1,14 @@
+out vec4 frag_color;
+in vec2 frag_coord;
+
+uniform sampler2D screen;
+
+float exposure = 0.3;
+float gamma = 2.0;
+
+void main() {
+  vec3 color = texture(screen, frag_coord).rgb;
+  color = vec3(1.0) - exp(-color * exposure);
+  color = pow(color, vec3(1.0 / gamma));
+  frag_color = vec4(color, 1.0);
+}

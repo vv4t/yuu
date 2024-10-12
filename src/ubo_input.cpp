@@ -18,6 +18,11 @@ void ubo_input_t::on_mouse_move(float x, float y) {
   m_data.mouse_y = y;
 }
 
+void ubo_input_t::set_viewport(int width, int height) {
+  m_data.width = width;
+  m_data.height = height;
+}
+
 void ubo_input_t::update() {
   m_data.time += 0.015;
   glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);

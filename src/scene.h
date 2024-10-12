@@ -50,6 +50,8 @@ public:
   };
 
   scene_t(
+    int width,
+    int height,
     ubo_input_t& ubo_input,
     std::vector<image_data_t> images,
     std::vector<buffer_data_t> buffers,
@@ -65,29 +67,25 @@ private:
     shader_t& m_shader;
     std::vector<texture_ref_t> m_input;
     target_t m_target;
+    int m_width;
+    int m_height;
 
   public:
-    inline pass_t(std::vector<texture_ref_t> input, shader_t& shader, std::vector<target_t::binding_t> output)
-      : m_shader(shader), m_input(input), m_target(output) {}
+    inline pass_t(std::vector<texture_ref_t> input, shader_t& shader, std::vector<target_t::binding_t> output, int width, int height)
+      : m_shader(shader), m_input(input), m_target(output), m_width(width), m_height(height) {}
     
-    inline void begin() {
-      for (std::size_t i = 0; i < m_input.size(); i++) {
-        m_input[i].get().bind(i);
-      }
-      m_shader.bind();
-      m_target.bind();
-    }
-    
-    inline void end() {
-      m_target.unbind();
-    }
+    void begin(ubo_input_t& input);
+    void end();
   };
   
+  ubo_input_t& m_input;
   std::map<std::string, shader_t> m_shaders;
   std::map<std::string, texture_t> m_textures;
   std::vector<pass_t> m_passes;
+  int m_width;
+  int m_height;
   
-  void shader_add(shader_data_t data, ubo_input_t& ubo_input);
+  void shader_add(shader_data_t data);
   void image_add(image_data_t data);
   void buffer_add(buffer_data_t data);
   void pass_add(pass_data_t data);

@@ -1,19 +1,19 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <vector>
+#include <yaml/Yaml.hpp>
+#include <filesystem>
 #include "window.h"
 #include "ubo_input.h"
 #include "scene.h"
-#include <yaml/Yaml.hpp>
-
-#define WIDTH 800
-#define HEIGHT 600
 
 int main(int argc, const char *argv[]) {
   if (argc != 2) {
     std::cerr << "usage: yuu [scene-yml]" << std::endl;
     return 1;
   }
+  
+  std::filesystem::path base = std::filesystem::path(argv[1]).parent_path();
   
   Yaml::Node root;
   Yaml::Parse(root, argv[1]);
@@ -22,10 +22,23 @@ int main(int argc, const char *argv[]) {
     throw std::runtime_error("missing top level 'scene'");
   }
   
+  Yaml::Node& yml_width = root["scene"]["width"];
+  Yaml::Node& yml_height = root["scene"]["height"];
   Yaml::Node& yml_images = root["scene"]["images"];
   Yaml::Node& yml_buffers = root["scene"]["buffers"];
   Yaml::Node& yml_shaders = root["scene"]["shaders"];
   Yaml::Node& yml_passes = root["scene"]["passes"];
+  
+  int width = 800;
+  int height = 600;
+  
+  if (yml_width.IsNone()) {
+    width = yml_width.As<int>();
+  }
+  
+  if (yml_height.IsNone()) {
+    height = yml_height.As<int>();
+  }
   
   std::vector<scene_t::image_data_t> images;
   std::vector<scene_t::buffer_data_t> buffers;
@@ -34,27 +47,50 @@ int main(int argc, const char *argv[]) {
   
   if (!yml_images.IsNone()) {
     for (auto it = yml_images.Begin(); it != yml_images.End(); it++) {
-      images.push_back(scene_t::image_data_t((*it).first, (*it).second.As<std::string>()));
+      std::string name = (*it).first;
+      std::string src = (*it).second.As<std::string>();
+      std::filesystem::path full = base / std::filesystem::path(src);
+      images.push_back(scene_t::image_data_t(name, full.u8string()));
     }
   }
   
   if (!yml_buffers.IsNone()) {
     for (auto it = yml_buffers.Begin(); it != yml_buffers.End(); it++) {
-      buffers.push_back(scene_t::buffer_data_t((*it).second.As<std::string>(), WIDTH, HEIGHT));
+      std::string name = (*it).first;
+      Yaml::Node& yml_width = (*it).second["width"];
+      Yaml::Node& yml_height = (*it).second["height"];
+      
+      int buffer_width = width;
+      int buffer_height = height;
+      
+      if (!yml_width.IsNone()) {
+        buffer_width = yml_width.As<int>();
+      }
+      
+      if (!yml_height.IsNone()) {
+        buffer_height = yml_height.As<int>();
+      }
+      
+      buffers.push_back(scene_t::buffer_data_t(name, buffer_width, buffer_height));
     }
   }
   
   for (auto it = yml_shaders.Begin(); it != yml_shaders.End(); it++) {
-    std::string name = (*it).first;
     Yaml::Node& yml_src = (*it).second["src"];
     Yaml::Node& yml_channels = (*it).second["channels"];
     
     std::vector<std::string> channels;
-    for (auto channel = yml_channels.Begin(); channel != yml_channels.End(); channel++) {
-      channels.push_back((*channel).second.As<std::string>());
+    if (!yml_channels.IsNone()) {
+      for (auto channel = yml_channels.Begin(); channel != yml_channels.End(); channel++) {
+        channels.push_back((*channel).second.As<std::string>());
+      }
     }
     
-    shaders.push_back(scene_t::shader_data_t(name, channels, yml_src.As<std::string>()));
+    std::string name = (*it).first;
+    std::string src = yml_src.As<std::string>();
+    std::filesystem::path full = base / std::filesystem::path(src);
+    
+    shaders.push_back(scene_t::shader_data_t(name, channels, full.u8string()));
   }
   
   for (auto it = yml_passes.Begin();  it != yml_passes.End(); it++) {
@@ -79,17 +115,16 @@ int main(int argc, const char *argv[]) {
     passes.push_back(scene_t::pass_data_t(inputs, yml_shader.As<std::string>(), outputs));
   }
   
-  window_t window(WIDTH, HEIGHT, "nui");
+  window_t window(width, height, "yuu");
   ubo_input_t ubo_input(0);
   quad_mesh_t mesh;
   
   window.add_input(ubo_input);
   
-  scene_t scene(ubo_input, images, buffers, shaders, passes);
+  scene_t scene(width, height, ubo_input, images, buffers, shaders, passes);
   
   while (window.poll()) {
     glClear(GL_COLOR_BUFFER_BIT);
-    ubo_input.update();
     scene.render(mesh);
     window.swap();
   }

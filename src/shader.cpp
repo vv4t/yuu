@@ -76,6 +76,10 @@ std::stringstream shader_read_source(const char* src) {
   std::stringstream ss;
   std::ifstream in = std::ifstream(src);
   
+  if (in.fail()) {
+    throw std::runtime_error("failed to open file '" + std::string(src) + "'");
+  }
+  
   std::string line;
   while (std::getline(in, line)) {
     std::regex rgx("^\\s*#\\s*pragma use\\s+[<\"]([^>\"]*)[>\"]\\s*");

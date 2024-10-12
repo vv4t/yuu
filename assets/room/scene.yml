@@ -1,0 +1,36 @@
+scene:
+  width: 800
+  height: 600
+  buffers:
+    ping:
+      width: 200
+      height: 150
+    pong:
+      width: 200
+      height: 150
+  shaders:
+    main:
+      src: room.glsl
+    tonemap:
+      src: ../post-process/tonemap.glsl
+      channels:
+        - screen
+    downsample:
+      src: ../post-process/downsample.glsl
+      channels:
+        - screen
+  passes:
+    -
+      shader: main
+      output:
+        - ping
+    -
+      shader: tonemap
+      input:
+        - ping
+      output:
+        - pong
+    -
+      shader: downsample
+      input:
+        - pong

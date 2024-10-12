@@ -1,6 +1,6 @@
-#pragma use "ray_march.glsl"
-#pragma use "math.glsl"
-#pragma use "pbr.glsl"
+#pragma use "../lib/ray_march.glsl"
+#pragma use "../lib/math.glsl"
+#pragma use "../lib/pbr.glsl"
 
 float rand(vec2 co){
   return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
