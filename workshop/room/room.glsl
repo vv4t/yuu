@@ -7,6 +7,7 @@ in vec2 frag_coord;
 
 void main() {
   vec2 uv = frag_coord * 2.0 - 1.0;
+  uv.x *= resolution.x / resolution.y;
   vec2 mp = mouse * 2.0 - 1.0;
   
   vec3 view_pos = vec3(0.0, -3.0, -3.0);

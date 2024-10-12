@@ -3,8 +3,8 @@ in vec2 frag_coord;
 
 uniform sampler2D screen;
 
-float exposure = 0.3;
-float gamma = 2.0;
+float gamma = 1.0;
+float exposure = 3.0;
 
 void main() {
   vec3 color = texture(screen, frag_coord).rgb;

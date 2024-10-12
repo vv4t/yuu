@@ -1,4 +1,4 @@
-.PHONY=default run build
+.PHONY=default build
 
 CFLAGS=-O3 -Wall
 LDFLAGS=-lSDL2 -lSDL2_image -lm
@@ -7,9 +7,10 @@ OBJ=$(patsubst src/%.cpp, bin/%.o, $(SRC))
 SRC_H=$(wildcard src/*.h)
 INCLUDE=-Iinclude
 
-default: yuu run
+default: build/yuu
 
-yuu: $(OBJ)
+build/yuu: $(OBJ)
+	mkdir -p build
 	g++ $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 bin/%.o: src/%.cpp $(SRC_H)
@@ -17,7 +18,4 @@ bin/%.o: src/%.cpp $(SRC_H)
 	g++ $(INCLUDE) $(CFLAGS) -c -o $@ $<
 
 build:
-	g++ $(CFLAGS) $(LDFLAGS) $(INCLUDE) $(SRC) -o yuu
-
-run: yuu
-	./yuu
+	g++ $(CFLAGS) $(LDFLAGS) $(INCLUDE) $(SRC) -o build/yuu
