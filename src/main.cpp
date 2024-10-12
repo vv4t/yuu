@@ -24,33 +24,35 @@ int main(int argc, const char *argv[]) {
   
   Yaml::Node& yml_width = root["scene"]["width"];
   Yaml::Node& yml_height = root["scene"]["height"];
-  Yaml::Node& yml_images = root["scene"]["images"];
-  Yaml::Node& yml_buffers = root["scene"]["buffers"];
-  Yaml::Node& yml_shaders = root["scene"]["shaders"];
-  Yaml::Node& yml_passes = root["scene"]["passes"];
   
   int width = 800;
   int height = 600;
   
-  if (yml_width.IsNone()) {
+  if (!yml_width.IsNone()) {
     width = yml_width.As<int>();
   }
   
-  if (yml_height.IsNone()) {
+  if (!yml_height.IsNone()) {
     height = yml_height.As<int>();
   }
   
-  std::vector<scene_t::image_data_t> images;
-  std::vector<scene_t::buffer_data_t> buffers;
-  std::vector<scene_t::shader_data_t> shaders;
-  std::vector<scene_t::pass_data_t> passes;
+  window_t window(width, height, "yuu");
+  ubo_input_t ubo_input(0);
+  quad_mesh_t mesh;
+  window.add_input(ubo_input);
+  scene_t scene(width, height, ubo_input);
+  
+  Yaml::Node& yml_images = root["scene"]["images"];
+  Yaml::Node& yml_buffers = root["scene"]["buffers"];
+  Yaml::Node& yml_shaders = root["scene"]["shaders"];
+  Yaml::Node& yml_passes = root["scene"]["passes"];
   
   if (!yml_images.IsNone()) {
     for (auto it = yml_images.Begin(); it != yml_images.End(); it++) {
       std::string name = (*it).first;
       std::string src = (*it).second.As<std::string>();
       std::filesystem::path full = base / std::filesystem::path(src);
-      images.push_back(scene_t::image_data_t(name, full.u8string()));
+      scene.image_add(name, full.u8string());
     }
   }
   
@@ -71,7 +73,7 @@ int main(int argc, const char *argv[]) {
         buffer_height = yml_height.As<int>();
       }
       
-      buffers.push_back(scene_t::buffer_data_t(name, buffer_width, buffer_height));
+      scene.buffer_add(name, buffer_width, buffer_height);
     }
   }
   
@@ -90,7 +92,7 @@ int main(int argc, const char *argv[]) {
     std::string src = yml_src.As<std::string>();
     std::filesystem::path full = base / std::filesystem::path(src);
     
-    shaders.push_back(scene_t::shader_data_t(name, channels, full.u8string()));
+    scene.shader_add(name, channels, full.u8string());
   }
   
   for (auto it = yml_passes.Begin();  it != yml_passes.End(); it++) {
@@ -112,16 +114,8 @@ int main(int argc, const char *argv[]) {
       }
     }
     
-    passes.push_back(scene_t::pass_data_t(inputs, yml_shader.As<std::string>(), outputs));
+    scene.pass_add(inputs, yml_shader.As<std::string>(), outputs);
   }
-  
-  window_t window(width, height, "yuu");
-  ubo_input_t ubo_input(0);
-  quad_mesh_t mesh;
-  
-  window.add_input(ubo_input);
-  
-  scene_t scene(width, height, ubo_input, images, buffers, shaders, passes);
   
   while (window.poll()) {
     glClear(GL_COLOR_BUFFER_BIT);
