@@ -1,3 +1,6 @@
+#ifndef RAY_MARCH_GLSL
+#define RAY_MARCH_GLSL
+
 #define MIN_DISTANCE 0.01
 #define MAX_DISTANCE 1000.0
 #define MAX_STEPS 64
@@ -65,3 +68,5 @@ float shadow(vec3 pt, vec3 rd, float ld)
   
   return kd;
 }
+
+#endif

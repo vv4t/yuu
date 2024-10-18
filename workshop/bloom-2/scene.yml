@@ -1,0 +1,123 @@
+scene:
+  width: 1000
+  height: 750
+  buffers:
+    luminance:
+    bloom:
+    buffer1:
+    buffer2:
+    mip1:
+      width: 600
+      height: 400
+    mip2:
+      width: 400
+      height: 300
+    mip3:
+      width: 200
+      height: 150
+    mip4:
+      width: 100
+      height: 75
+  shaders:
+    emit:
+      src: emit.glsl
+    mix:
+      src: mix.glsl
+      channels:
+        - first
+        - second
+    area-light:
+      src: area-light.glsl
+    tonemap:
+      src: ../post-process/tonemap.glsl
+      channels:
+        - srcTexture
+    downsample:
+      src: ../post-process/downsample.glsl
+      channels:
+        - srcTexture
+    upsample:
+      src: ../post-process/upsample.glsl
+      channels:
+        - srcTexture
+  passes:
+    -
+      shader: area-light
+      output:
+        - buffer1
+    -
+      shader: emit
+      output:
+        - buffer2
+    -
+      shader: mix
+      input:
+        - buffer1
+        - buffer2
+      output:
+        - luminance
+    -
+      shader: downsample
+      input:
+        - luminance
+      output:
+        - mip1
+    -
+      shader: downsample
+      input:
+        - mip1
+      output:
+        - mip2
+    -
+      shader: downsample
+      input:
+        - mip2
+      output:
+        - mip3
+    -
+      shader: downsample
+      input:
+        - mip3
+      output:
+        - mip4
+    -
+      shader: upsample
+      input:
+        - mip4
+      output:
+        - mip3
+    -
+      shader: upsample
+      input:
+        - mip3
+      output:
+        - mip2
+    -
+      shader: upsample
+      input:
+        - mip2
+      output:
+        - mip1
+    -
+      shader: upsample
+      input:
+        - mip2
+      output:
+        - mip1
+    -
+      shader: upsample
+      input:
+        - mip1
+      output:
+        - bloom
+    -
+      shader: mix
+      input:
+        - bloom
+        - luminance
+      output:
+        - buffer1
+    -
+      shader: tonemap
+      input:
+        - buffer1

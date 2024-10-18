@@ -24,6 +24,12 @@ void main() {
     vec3 light = vec3(0.0);
     
     vec3 p = view_pos + rd * td;
+    
+    if (p.x > -2.0 && p.x < 2.0 && p.y > -5.0 && p.y < 2.0 && p.z > 4.0) {
+      frag_color = vec4(1.0, 3.0, 3.0, 1.0);
+      return;
+    }
+    
     vec3 V = normalize(view_pos - p);
     vec3 N = map_normal(p);
     light += calc_point_lighting(p, V, N, albedo, metallic, roughness);
@@ -60,8 +66,8 @@ float map(vec3 p) {
 }
 
 light_t lights[] = light_t[](
-  light_t( vec3(3.0, 2.0, 3.0), vec3(0.5, 1.0, 1.0) * 20.0 ),
-  light_t( vec3(-3.0, 2.0, 3.0), vec3(1.0, 0.5, 1.0) * 40.0 )
+  light_t( vec3(0.0, 0.0, 5.0), vec3(0.5, 1.0, 1.0) * 10.0 )
+  // light_t( vec3(-3.0, 2.0, 3.0), vec3(1.0, 0.5, 1.0) * 10.0 )
 );
 
 light_t lights_get(int num) {
@@ -69,5 +75,5 @@ light_t lights_get(int num) {
 }
 
 int lights_count() {
-  return 2;
+  return 1;
 }

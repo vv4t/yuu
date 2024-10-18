@@ -62,8 +62,7 @@ vec3 BRDF(vec3 albedo, float metallic, float roughness, vec3 L, vec3 V, vec3 N)
   float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
   vec3 specular     = numerator / denominator;
       
-  float NdotL = max(dot(N, L), 0.0);
-  return (kD * albedo / M_PI + specular) * NdotL;
+  return (kD * albedo / M_PI + specular);
 }
 
 #endif

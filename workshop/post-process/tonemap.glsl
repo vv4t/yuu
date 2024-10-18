@@ -3,7 +3,7 @@ in vec2 frag_coord;
 
 uniform sampler2D screen;
 
-float gamma = 1.0;
+float gamma = 0.5;
 float exposure = 3.0;
 
 void main() {

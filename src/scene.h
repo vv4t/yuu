@@ -34,7 +34,11 @@ private:
       std::vector<target_t::binding_t> output,
       int width,
       int height
-    ) : m_shader(shader), m_input(input), m_target(output), m_width(width), m_height(height) {}
+    ) : m_shader(shader),
+        m_input(input),
+        m_target(output),
+        m_width(width),
+        m_height(height) {}
     
     void begin(ubo_input_t& input);
     void end();
@@ -46,6 +50,7 @@ private:
   std::vector<pass_t> m_passes;
   int m_width;
   int m_height;
+  int m_frame;
 };
 
 #endif

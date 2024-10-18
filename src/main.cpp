@@ -8,6 +8,7 @@
 #include "scene.h"
 
 int main(int argc, const char *argv[]) {
+  srand(time(NULL));
   if (argc != 2) {
     std::cerr << "usage: yuu [scene-yml]" << std::endl;
     return 1;

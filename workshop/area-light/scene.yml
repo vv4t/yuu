@@ -1,0 +1,6 @@
+scene:
+  shaders:
+    main:
+      src: main.glsl
+  passes:
+    - shader: main

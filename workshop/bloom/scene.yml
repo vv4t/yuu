@@ -19,7 +19,7 @@ scene:
       height: 75
   shaders:
     main:
-      src: room.glsl
+      src: main.glsl
     mix:
       src: mix.glsl
       channels:

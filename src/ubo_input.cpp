@@ -1,5 +1,6 @@
 #include "ubo_input.h"
 #include <iostream>
+#include <stdlib.h>
 
 ubo_input_t::ubo_input_t(int binding)
   : m_binding(binding) {
@@ -21,6 +22,16 @@ void ubo_input_t::on_mouse_move(float x, float y) {
 void ubo_input_t::set_viewport(int width, int height) {
   m_data.width = width;
   m_data.height = height;
+}
+
+void ubo_input_t::set_frame(int frame) {
+  m_data.frame = frame;
+}
+
+void ubo_input_t::randomize() {
+  m_data.seed[0] = (float) rand() / (float) RAND_MAX;
+  m_data.seed[1] = (float) rand() / (float) RAND_MAX;
+  m_data.seed[2] = (float) rand() / (float) RAND_MAX;
 }
 
 void ubo_input_t::update() {

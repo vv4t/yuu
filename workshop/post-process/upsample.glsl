@@ -2,7 +2,7 @@ in vec2 frag_coord;
 out vec4 frag_color;
 
 uniform sampler2D srcTexture;
-float filterRadius = 0.05;
+float filterRadius = 0.001;
 
 // https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
 void main()
