@@ -1,6 +1,8 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#define SDL_MAIN_HANDLED
+
 #include <vector>
 #include <SDL2/SDL.h>
 #include "input.h"

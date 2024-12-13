@@ -1,2 +1,1 @@
-PS1="(yuu) ${PS1}"
 export PATH=$PATH:$(pwd)/build
