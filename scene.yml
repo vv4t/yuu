@@ -1,0 +1,12 @@
+scene:
+  width: 800
+  height: 600
+  buffers:
+    a: 640x480
+    b: default
+    c: default
+  shaders:
+    main:
+      src: main.glsl
+      channels: albedo metalness roughness
+    
