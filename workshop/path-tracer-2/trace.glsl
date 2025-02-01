@@ -23,8 +23,8 @@ void main() {
   vec2 uv = frag_coord * 2.0 - 1.0;
   uv.x *= resolution.x / resolution.y;
   
-  vec3 view_pos = vec3(3.0, 0.0, -9.0);
-  mat4 view_mat = mat4(1.0) * rotate_y(-0.0) * rotate_x(-0.0);
+  vec3 view_pos = vec3(-18.0, 3.0, 3.0);
+  mat4 view_mat = mat4(1.0) * rotate_y(1.2) * rotate_x(0.0);
   
   struct {
     vec3 luminance;
@@ -70,7 +70,7 @@ void main() {
   
   for (; i >= 0; i--) {
     radiance = radiance * stack[i].luminance * energy;
-    energy *= 0.8;
+    energy *= 0.9;
   }
   
   vec3 total = texture(luminance, frag_coord).rgb + radiance;
@@ -84,17 +84,13 @@ vec3 randomSpecularRay(vec3 seed, vec3 V, vec3 N, float roughness) {
 
 surface_t get_surface(vec3 p, int id) {
   if (id == 0) {
-    return surface_solid(vec3(1.0, 0.5, 1.0), 0.1, 0.4);
-  } else if (id == 1) {
-    return surface_light(vec3(0.7, 1.0, 1.0), 4.0);
-  } else if (id == 2) {
-    return surface_solid(vec3(0.7, 0.4, 0.6), 0.2, 0.5);
-  } else if (id == 3) {
-    return surface_light(vec3(1.0, 0.5, 0.2), 2.0);
-  } else if (id == 4) {
-    return surface_solid(vec3(1.0, 0.2, 0.2), 0.1, 0.5);
-  } else if (id == 5) {
     return surface_tile(p);
+  } else if (id == 1) {
+    return surface_light(vec3(0.8, 1.0, 1.0), 30.0);
+  } else if (id == 2) {
+    return surface_solid(vec3(1.0, 0.5, 1.0), 0.9, 0.4);
+  } else if (id == 3) {
+    return surface_solid(vec3(0.5, 0.5, 1.0), 0.1, 0.9);
   }
 }
 
@@ -103,20 +99,30 @@ hit_t map(vec3 p) {
   s.d = MAX_DISTANCE;
   s.id = 0;
   
-  s = map_cmp(s, 0, plane(p, vec3(0, 0, -1), -22.0));
-  s = map_cmp(s, 5, plane(p, vec3(0, 0, +1), -12.0));
-  s = map_cmp(s, 5, plane(p, vec3(+1, 0, 0), -12.0));
-  s = map_cmp(s, 5, plane(p, vec3(-1, 0, 0), -12.0));
-  s = map_cmp(s, 5, plane(p, vec3(0, +1, 0), -6.0));
-  s = map_cmp(s, 1, plane(p, vec3(0, -1, 0), -12.0));
+  // walls
+  s = map_add(s, 0, plane(p, vec3(0, 0, -1), -20.0));
+  s = map_add(s, 0, plane(p, vec3(0, 0, +1), 0.0));
+  s = map_add(s, 0, plane(p, vec3(+1, 0, 0), -32.0));
+  s = map_add(s, 0, plane(p, vec3(-1, 0, 0), 0.0));
+  s = map_add(s, 0, plane(p, vec3(0, +1, 0), 0.0));
+  s = map_add(s, 0, plane(p, vec3(0, -1, 0), -8.0));
   
-  s = map_cmp(s, 4, cube(p, vec3(-1.0, -3.0, 12.0), vec3(0.5, 2.0, 12.0)));
-  s = map_cmp(s, 4, cube(p, vec3(+7.0, -3.0, 12.0), vec3(0.5, 2.0, 12.0)));
-  s = map_cmp(s, 4, cube(p, vec3( 3.0, 4.0, 12.0), vec3(2.0, 0.5, 12.0)));
-  // s = map_cmp(s, 3, cube(p, vec3( 3.0, -1.0, 12.0), vec3(4.0, 6.0, 1.0)));
+  // light
+  s = map_add(s, 1, cube(p, vec3(-3.0, 8.0, 13.0), vec3(1.0, 0.125, 4.0)));
   
-  s = map_cmp(s, 2, sphere(p, vec3(1.0, -4.0, 2.0), 2.0));
-  s = map_cmp(s, 4, sphere(p, vec3(3.0, -4.0, 7.0), 2.0));
+  // corridor
+  s = map_add(s, 0, cube(p, vec3(-9.0, 4.0, 4.0), vec3(1.0, 4.0, 1.0)));
+  s = map_add(s, 0, cube(p, vec3(-9.0, 4.0, 10.0), vec3(1.0, 4.0, 1.0)));
+  s = map_add(s, 0, cube(p, vec3(-9.0, 4.0, 16.0), vec3(1.0, 4.0, 1.0)));
+  // s = map_add(s, 0, cube(p, vec3(-9.0, 7.0, 10.0), vec3(4.0, 1.0, 6.0)));
+  
+  // doors
+  s = map_sub(s, 0, cube(p, vec3(3.0, 3.0, 7.0), vec3(6.0, 3.0, 2.0)));
+  s = map_sub(s, 0, cube(p, vec3(3.0, 3.0, 13.0), vec3(6.0, 3.0, 2.0)));
+  
+  // sphere
+  s = map_add(s, 2, sphere(p, vec3(-6.0, 1.0, 7.0), 1.0));
+  s = map_add(s, 3, sphere(p, vec3(-0.0, 1.5, 7.0), 1.5));
   
   return s;
 }

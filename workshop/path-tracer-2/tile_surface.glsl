@@ -3,7 +3,7 @@
 
 #pragma use "surface.glsl"
 
-#define TILE 4.0
+#define TILE 10.0
 
 vec3 get_albedo(vec2 uv)
 {
@@ -18,9 +18,9 @@ float get_roughness(vec2 uv)
   float alpha = 0.0;
   
   if (fract(uv.y * TILE) > 0.5) {
-    alpha = (fract(uv.x * TILE) > 0.5 ? 0.18 : 0.20);
+    alpha = (fract(uv.x * TILE) > 0.5 ? 0.45 : 0.5);
   } else {
-    alpha = (fract(uv.x * TILE) < 0.5 ? 0.18 : 0.20);
+    alpha = (fract(uv.x * TILE) < 0.5 ? 0.45 : 0.5);
   }
   
   return alpha;
