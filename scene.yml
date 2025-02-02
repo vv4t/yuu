@@ -9,4 +9,7 @@ scene:
     main:
       src: main.glsl
       channels: albedo metalness roughness
-    
+  renderer:
+    - main
+    - main a,b
+    - main a,b -> c

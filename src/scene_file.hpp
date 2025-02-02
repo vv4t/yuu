@@ -7,7 +7,7 @@
 #include <yaml/Yaml.hpp>
 
 class scene_file_t {
-private:
+public:
   class buffer_t {
   private:
     std::string m_name;
@@ -35,6 +35,23 @@ private:
         m_src(src),
         m_channels(channels) {}
   };
+  
+  class pass_t {
+  private:
+    std::string m_shader;
+    std::vector<std::string> m_input;
+    std::vector<std::string> m_output;
+  
+  public:
+    pass_t(
+      std::string shader,
+      std::vector<std::string> input,
+      std::vector<std::string> output
+    )
+      : m_shader(shader),
+        m_input(input),
+        m_output(output) {}
+  };
 
 private:
   int m_width;
@@ -42,6 +59,7 @@ private:
   
   std::vector<buffer_t> m_buffers;
   std::vector<shader_t> m_shaders;
+  std::vector<pass_t> m_renderer;
 
 private:
   void error(std::string message);
@@ -53,6 +71,7 @@ private:
   bool parse_scene(Yaml::Node& node);
   bool parse_buffers(Yaml::Node& node);
   bool parse_shaders(Yaml::Node& node);
+  bool parse_renderer(Yaml::Node& node);
 
 public:
   scene_file_t();
