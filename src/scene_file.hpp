@@ -91,6 +91,8 @@ public:
   std::vector<buffer_t> get_buffers() { return m_buffers; }
   std::vector<shader_t> get_shaders() { return m_shaders; }
   std::vector<pass_t> get_renderer() { return m_renderer; }
+  int get_width() { return m_width; }
+  int get_height() { return m_height; }
 };
 
 #endif

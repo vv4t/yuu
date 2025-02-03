@@ -3,4 +3,4 @@ scene:
     main:
       src: main.glsl
   passes:
-    - shader: main
+    - main

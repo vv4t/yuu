@@ -5,22 +5,20 @@ mesh_t::mesh_t() {
   glBindVertexArray(m_vao);
   
   float vertices[] = {
-    +1, +1, 1, 1,
-    -1, +1, 0, 1,
-    -1, -1, 0, 0,
-    +1, -1, 1, 0,
-    +1, +1, 1, 1,
-    -1, -1, 0, 0
+    +1, +1,
+    -1, +1,
+    -1, -1,
+    +1, -1,
+    +1, +1,
+    -1, -1,
   };
   
   glGenBuffers(1, &m_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-  glBufferData(GL_ARRAY_BUFFER, 6 * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), vertices, GL_STATIC_DRAW);
   
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (float*) 0);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (float*) 0 + 2);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (float*) 0);
 }
 
 void mesh_t::draw() {

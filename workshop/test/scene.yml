@@ -1,15 +1,15 @@
 scene:
-  width: 800
-  height: 600
   buffers:
-    a: 640x480
+    a: default
     b: default
-    c: default
   shaders:
     main:
       src: main.frag
-      channels: albedo metalness roughness
+      channels: u_buffer
+    test:
+      src: test.frag
+      channels: u_buffer
   renderer:
-    - main
-    - main a,b
-    - main a,b -> c
+    - main a -> b
+    - main b -> a
+    - test a

@@ -5,7 +5,7 @@ static target_t create_target(std::vector<texture_ref_t> output);
 scene_t::scene_t(scene_file_t& scene_file) {
   m_passes.reserve(16);
   
-  for (auto buffer : scene_file.get_buffers()) {
+  for (auto& buffer : scene_file.get_buffers()) {
     add_buffer(
       buffer.get_name(),
       buffer.get_width(),
@@ -13,7 +13,7 @@ scene_t::scene_t(scene_file_t& scene_file) {
     );
   }
   
-  for (auto shader : scene_file.get_shaders()) {
+  for (auto& shader : scene_file.get_shaders()) {
     add_shader(
       shader.get_name(),
       shader.get_src(),
@@ -21,7 +21,7 @@ scene_t::scene_t(scene_file_t& scene_file) {
     );
   }
   
-  for (auto pass : scene_file.get_renderer()) {
+  for (auto& pass : scene_file.get_renderer()) {
     add_pass(
       pass.get_shader(),
       pass.get_input(),
@@ -31,7 +31,7 @@ scene_t::scene_t(scene_file_t& scene_file) {
 }
 
 void scene_t::render() {
-  for (auto pass : m_passes) {
+  for (auto& pass : m_passes) {
     pass.bind();
     mesh.draw();
   }
@@ -39,12 +39,12 @@ void scene_t::render() {
 
 void scene_t::add_pass(std::string shader, std::vector<std::string> input, std::vector<std::string> output) {
   std::vector<texture_ref_t> bindings;
-  for (auto name : input) {
+  for (auto& name : input) {
     bindings.push_back(m_textures.at(name));
   }
   
   std::vector<texture_ref_t> target;
-  for (auto name : output) {
+  for (auto& name : output) {
     target.push_back(m_textures.at(name));
   }
   
@@ -52,21 +52,14 @@ void scene_t::add_pass(std::string shader, std::vector<std::string> input, std::
 }
 
 void scene_t::add_buffer(std::string name, int width, int height) {
-  m_textures.try_emplace(name, width, height, GL_RGBA, GL_RGBA16F, GL_FLOAT);
+  m_textures.try_emplace(name, width, height, GL_RGBA, GL_RGBA32F, GL_FLOAT);
 }
 
 void scene_t::add_shader(std::string name, std::string src, std::vector<std::string> channels) {
   std::stringstream src_vertex, src_fragment;
   src_vertex << R"(
 layout (location = 0) in vec2 v_pos;
-layout (location = 1) in vec2 v_uv;
-
-out vec2 frag_coord;
-
-void main() {
-  frag_coord = v_uv;
-  gl_Position = vec4(v_pos, 0.0, 1.0);
-}
+void main() { gl_Position = vec4(v_pos, 0.0, 1.0); }
   )";
   src_fragment << shader_read_source(src.c_str()).rdbuf() << std::endl;
   m_shaders.try_emplace(name, src_vertex, src_fragment);
@@ -93,6 +86,7 @@ target_t create_target(std::vector<texture_ref_t> output) {
 }
 
 void scene_t::pass_t::bind() {
+  m_shader.bind();
   for (unsigned long int i = 0; i < m_bindings.size(); i++) {
     m_bindings[i].get().bind(i);
   }

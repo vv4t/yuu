@@ -7,7 +7,9 @@
 std::vector<std::string> split_string(std::string target, char delimiter);
 
 scene_file_t::scene_file_t(std::string src)
-  : m_base(std::filesystem::path(src).parent_path()) {
+  : m_base(std::filesystem::path(src).parent_path()),
+    m_width(800),
+    m_height(600) {
   Yaml::Node root;
   Yaml::Parse(root, src.c_str());
   
@@ -21,11 +23,15 @@ bool scene_file_t::parse_scene(Yaml::Node& node) {
   Yaml::Node& width = scene["width"];
   Yaml::Node& height = scene["height"];
   
-  if (!expect_int(width, "width")) return false;
-  if (!expect_int(height, "height")) return false;
+  if (!width.IsNone()) {
+    if (!expect_int(width, "width")) return false;
+    m_width = width.As<int>();
+  }
   
-  m_width = width.As<int>();
-  m_height = height.As<int>();
+  if (!height.IsNone()) {
+    if (!expect_int(height, "width")) return false;
+    m_height = height.As<int>();
+  }
   
   if (!parse_buffers(scene)) return false;
   if (!parse_shaders(scene)) return false;
@@ -43,7 +49,7 @@ bool scene_file_t::parse_renderer(Yaml::Node& node) {
   std::regex match_shader_output("([a-zA-A0-9_,]+) -> ([a-zA-Z0-9_,]+)");
   std::regex match_shader_input_output("([a-zA-Z0-9_,]+) ([a-zA-Z0-9_,]+) -> ([a-zA-Z0-9_,]+)");
   
-  for (auto it = renderer.Begin(); it != renderer.End(); it++) {
+  for (auto& it = renderer.Begin(); it != renderer.End(); it++) {
     Yaml::Node& body = (*it).second;
     if (!expect_string(body, "pass")) return false;
     std::string pass = body.As<std::string>();
@@ -81,7 +87,7 @@ bool scene_file_t::parse_shaders(Yaml::Node& node) {
   if (shaders.IsNone()) return true;
   else if (!expect_map(shaders, "shaders")) return false;
 
-  for (auto it = shaders.Begin(); it != shaders.End(); it++) {
+  for (auto& it = shaders.Begin(); it != shaders.End(); it++) {
     std::string name = (*it).first;
     Yaml::Node& body = (*it).second;
     if (!expect_map(body, name.c_str())) return false;
@@ -114,7 +120,7 @@ bool scene_file_t::parse_buffers(Yaml::Node& node) {
   std::regex match_width_height("(\\d+)x(\\d+)");
   std::regex match_default("default");
   
-  for (auto it = buffers.Begin(); it != buffers.End(); it++) {
+  for (auto& it = buffers.Begin(); it != buffers.End(); it++) {
     std::string name = (*it).first;
     Yaml::Node& body = (*it).second;
     if (!expect_string(body, name.c_str())) return false;

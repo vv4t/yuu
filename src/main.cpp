@@ -10,7 +10,7 @@ int main(int argc, const char *argv[]) {
   scene_file_t scene_file(src);
   
   input_t input;
-  window_t window(800, 600, "yuu", input);
+  window_t window(scene_file.get_width(), scene_file.get_height(), "yuu", input);
   
   scene_t scene(scene_file);
   
