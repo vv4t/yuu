@@ -7,7 +7,7 @@ scene:
     c: default
   shaders:
     main:
-      src: main.glsl
+      src: main.frag
       channels: albedo metalness roughness
   renderer:
     - main

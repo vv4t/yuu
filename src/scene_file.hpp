@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <filesystem>
 #include <yaml/Yaml.hpp>
 
 class scene_file_t {
@@ -19,6 +20,8 @@ public:
       : m_name(name),
         m_width(width),
         m_height(height) {}
+    
+    std::string get_name() { return m_name; }
     int get_width() { return m_width; }
     int get_height() { return m_height; }
   };
@@ -34,6 +37,10 @@ public:
       : m_name(name),
         m_src(src),
         m_channels(channels) {}
+    
+    std::string get_name() { return m_name; }
+    std::string get_src() { return m_src; }
+    std::vector<std::string> get_channels() { return m_channels; }
   };
   
   class pass_t {
@@ -51,9 +58,15 @@ public:
       : m_shader(shader),
         m_input(input),
         m_output(output) {}
+    
+    std::string get_shader() { return m_shader; }
+    std::vector<std::string> get_input() { return m_input; }
+    std::vector<std::string> get_output() { return m_output; }
   };
 
 private:
+  std::filesystem::path m_base;
+
   int m_width;
   int m_height;
   
@@ -74,7 +87,10 @@ private:
   bool parse_renderer(Yaml::Node& node);
 
 public:
-  scene_file_t();
+  scene_file_t(std::string src);
+  std::vector<buffer_t> get_buffers() { return m_buffers; }
+  std::vector<shader_t> get_shaders() { return m_shaders; }
+  std::vector<pass_t> get_renderer() { return m_renderer; }
 };
 
 #endif

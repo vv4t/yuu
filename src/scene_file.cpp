@@ -1,22 +1,21 @@
 #include "scene_file.hpp"
 
 #include <iostream>
-#include <filesystem>
 #include <regex>
 #include <sstream>
 
 std::vector<std::string> split_string(std::string target, char delimiter);
 
-scene_file_t::scene_file_t() {
+scene_file_t::scene_file_t(std::string src)
+  : m_base(std::filesystem::path(src).parent_path()) {
   Yaml::Node root;
-  Yaml::Parse(root, "scene.yml");
+  Yaml::Parse(root, src.c_str());
   
   parse_scene(root);
 }
 
 bool scene_file_t::parse_scene(Yaml::Node& node) {
   Yaml::Node& scene = node["scene"];
-  
   if (!expect_map(scene, "scene")) return false;
   
   Yaml::Node& width = scene["width"];
@@ -93,14 +92,15 @@ bool scene_file_t::parse_shaders(Yaml::Node& node) {
     if (!expect_string(src_node, "src")) return false;
     
     std::string src = src_node.As<std::string>();
-    std::vector<std::string> channels;
+    std::filesystem::path full = m_base / std::filesystem::path(src);
     
+    std::vector<std::string> channels;
     if (!channels_node.IsNone()) {
       if (!expect_string(channels_node, "channels")) return false;
       channels = split_string(channels_node.As<std::string>(), ' ');
     }
     
-    m_shaders.push_back(scene_file_t::shader_t(name, src, channels));
+    m_shaders.push_back(scene_file_t::shader_t(name, full.u8string(), channels));
   }
   
   return true;
@@ -166,7 +166,7 @@ bool scene_file_t::expect_array(Yaml::Node& node, std::string name) {
 
 void scene_file_t::type_error(std::string name, std::string type) {
   std::stringstream message;
-  message << "error: expected '" << name << "' as " << type << "." << std::endl;
+  message << "expected '" << name << "' as " << type << ".";
   error(message.str());
 }
 
