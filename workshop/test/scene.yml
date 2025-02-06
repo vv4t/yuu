@@ -10,6 +10,4 @@ scene:
       src: test.frag
       channels: u_buffer
   renderer:
-    - main a -> b
-    - main b -> a
-    - test a
+    - test

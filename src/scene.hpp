@@ -28,6 +28,7 @@ private:
   std::vector<pass_t> m_passes;
   mesh_t m_mesh;
   ubo_t m_ubo;
+  float m_time;
 
 public:
   scene_t(scene_file_t& file);

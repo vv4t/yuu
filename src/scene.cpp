@@ -7,7 +7,8 @@ scene_t::scene_t(scene_file_t& scene_file)
     ubo_t::field_t(ubo_t::VEC2, "u_resolution"),
     ubo_t::field_t(ubo_t::FLOAT, "u_time"),
     ubo_t::field_t(ubo_t::FLOAT, "u_frame")
-  }){
+  }),
+  m_time(0.0) {
   m_passes.reserve(16);
   
   for (auto& buffer : scene_file.get_buffers()) {
@@ -33,9 +34,15 @@ scene_t::scene_t(scene_file_t& scene_file)
       pass.get_output()
     );
   }
+  
+  float resolution[] = { 800, 600 };
+  m_ubo.sub("u_resolution", resolution, 0, sizeof(resolution));
 }
 
 void scene_t::render() {
+  m_time += 0.015;
+  m_ubo.sub("u_time", &m_time, 0, sizeof(m_time));
+  
   for (auto& pass : m_passes) {
     pass.bind();
     m_mesh.draw();
@@ -70,6 +77,7 @@ void main() { gl_Position = vec4(v_pos, 0.0, 1.0); }
   src_fragment << shader_read_source(src.c_str()).rdbuf() << std::endl;
   m_shaders.try_emplace(name, src_vertex, src_fragment);
   shader_t& shader = m_shaders.at(name);
+  m_ubo.attach_shader(shader);
   
   for (long unsigned int i = 0; i < channels.size(); i++) {
     shader.uniform_int(channels[i].c_str(), i);

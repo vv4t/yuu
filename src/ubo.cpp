@@ -11,7 +11,7 @@ static struct {
   { "vec4", 4 }
 };
 
-ubo_t::ubo_t(int binding, std::vector<field_t> fields) {
+ubo_t::ubo_t(int binding, std::vector<field_t> fields) : m_binding(binding) {
   int top = 0;
   m_definition += "layout (std140) uniform ubo { ";
   for (auto field : fields) {
@@ -36,10 +36,16 @@ std::string ubo_t::get_definition() {
 }
 
 std::string ubo_t::field_t::get_definition() {
-  return std::string(shader_type_data[m_type].name) + " " + m_name + "; ";
+  return std::string(shader_type_data[m_type].name) + " " + std::string(m_name) + "; ";
 }
 
-void ubo_t::sub(std::string name, void* data, int offset, int size) {
+void ubo_t::sub(const char* name, void* data, int offset, int size) {
   glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(m_data), &m_data); 
+  glBufferSubData(GL_UNIFORM_BUFFER, m_mapping[name], size, data); 
+}
+
+void ubo_t::attach_shader(shader_t& shader) {
+  shader.bind();
+  GLuint location = glGetUniformBlockIndex(shader.get_program(), "ubo");
+  glUniformBlockBinding(shader.get_program(), location, m_binding);
 }
