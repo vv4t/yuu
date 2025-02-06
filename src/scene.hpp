@@ -6,6 +6,7 @@
 #include "target.hpp"
 #include "shader.hpp"
 #include "mesh.hpp"
+#include "ubo.hpp"
 #include <vector>
 
 class scene_t {
@@ -25,7 +26,8 @@ private:
   std::map<std::string, texture_t> m_textures;
   std::map<std::string, shader_t> m_shaders;
   std::vector<pass_t> m_passes;
-  mesh_t mesh;
+  mesh_t m_mesh;
+  ubo_t m_ubo;
 
 public:
   scene_t(scene_file_t& file);

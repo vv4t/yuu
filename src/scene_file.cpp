@@ -49,7 +49,7 @@ bool scene_file_t::parse_renderer(Yaml::Node& node) {
   std::regex match_shader_output("([a-zA-A0-9_,]+) -> ([a-zA-Z0-9_,]+)");
   std::regex match_shader_input_output("([a-zA-Z0-9_,]+) ([a-zA-Z0-9_,]+) -> ([a-zA-Z0-9_,]+)");
   
-  for (auto& it = renderer.Begin(); it != renderer.End(); it++) {
+  for (auto it = renderer.Begin(); it != renderer.End(); it++) {
     Yaml::Node& body = (*it).second;
     if (!expect_string(body, "pass")) return false;
     std::string pass = body.As<std::string>();
@@ -87,7 +87,7 @@ bool scene_file_t::parse_shaders(Yaml::Node& node) {
   if (shaders.IsNone()) return true;
   else if (!expect_map(shaders, "shaders")) return false;
 
-  for (auto& it = shaders.Begin(); it != shaders.End(); it++) {
+  for (auto it = shaders.Begin(); it != shaders.End(); it++) {
     std::string name = (*it).first;
     Yaml::Node& body = (*it).second;
     if (!expect_map(body, name.c_str())) return false;
@@ -120,7 +120,7 @@ bool scene_file_t::parse_buffers(Yaml::Node& node) {
   std::regex match_width_height("(\\d+)x(\\d+)");
   std::regex match_default("default");
   
-  for (auto& it = buffers.Begin(); it != buffers.End(); it++) {
+  for (auto it = buffers.Begin(); it != buffers.End(); it++) {
     std::string name = (*it).first;
     Yaml::Node& body = (*it).second;
     if (!expect_string(body, name.c_str())) return false;

@@ -2,7 +2,12 @@
 
 static target_t create_target(std::vector<texture_ref_t> output);
 
-scene_t::scene_t(scene_file_t& scene_file) {
+scene_t::scene_t(scene_file_t& scene_file)
+  : m_ubo(0, {
+    ubo_t::field_t(ubo_t::VEC2, "u_resolution"),
+    ubo_t::field_t(ubo_t::FLOAT, "u_time"),
+    ubo_t::field_t(ubo_t::FLOAT, "u_frame")
+  }){
   m_passes.reserve(16);
   
   for (auto& buffer : scene_file.get_buffers()) {
@@ -33,7 +38,7 @@ scene_t::scene_t(scene_file_t& scene_file) {
 void scene_t::render() {
   for (auto& pass : m_passes) {
     pass.bind();
-    mesh.draw();
+    m_mesh.draw();
   }
 }
 
@@ -61,6 +66,7 @@ void scene_t::add_shader(std::string name, std::string src, std::vector<std::str
 layout (location = 0) in vec2 v_pos;
 void main() { gl_Position = vec4(v_pos, 0.0, 1.0); }
   )";
+  src_fragment << m_ubo.get_definition() << std::endl;
   src_fragment << shader_read_source(src.c_str()).rdbuf() << std::endl;
   m_shaders.try_emplace(name, src_vertex, src_fragment);
   shader_t& shader = m_shaders.at(name);
