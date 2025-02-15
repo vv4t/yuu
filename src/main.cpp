@@ -9,6 +9,10 @@ int main(int argc, const char *argv[]) {
   std::string src(argv[1]);
   scene_file_t scene_file(src);
   
+  if (!scene_file.validate()) {
+    return false;
+  }
+  
   input_t input;
   window_t window(scene_file.get_width(), scene_file.get_height(), "yuu", input);
   scene_t scene(scene_file);

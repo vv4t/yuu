@@ -1,4 +1,3 @@
-in vec2 frag_coord;
 out vec4 frag_color;
 
 uniform sampler2D srcTexture;
@@ -7,6 +6,7 @@ float filterRadius = 0.001;
 // https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
 void main()
 {
+  vec2 uv = gl_FragCoord.xy / u_resolution;
   // The filter kernel is applied with a radius, specified in texture
   // coordinates, so that the radius will vary across mip resolutions.
   float x = filterRadius;
@@ -17,17 +17,17 @@ void main()
   // d - e - f
   // g - h - i
   // === ('e' is the current texel) ===
-  vec3 a = texture(srcTexture, vec2(frag_coord.x - x, frag_coord.y + y)).rgb;
-  vec3 b = texture(srcTexture, vec2(frag_coord.x,     frag_coord.y + y)).rgb;
-  vec3 c = texture(srcTexture, vec2(frag_coord.x + x, frag_coord.y + y)).rgb;
+  vec3 a = texture(srcTexture, vec2(uv.x - x, uv.y + y)).rgb;
+  vec3 b = texture(srcTexture, vec2(uv.x,     uv.y + y)).rgb;
+  vec3 c = texture(srcTexture, vec2(uv.x + x, uv.y + y)).rgb;
 
-  vec3 d = texture(srcTexture, vec2(frag_coord.x - x, frag_coord.y)).rgb;
-  vec3 e = texture(srcTexture, vec2(frag_coord.x,     frag_coord.y)).rgb;
-  vec3 f = texture(srcTexture, vec2(frag_coord.x + x, frag_coord.y)).rgb;
+  vec3 d = texture(srcTexture, vec2(uv.x - x, uv.y)).rgb;
+  vec3 e = texture(srcTexture, vec2(uv.x,     uv.y)).rgb;
+  vec3 f = texture(srcTexture, vec2(uv.x + x, uv.y)).rgb;
 
-  vec3 g = texture(srcTexture, vec2(frag_coord.x - x, frag_coord.y - y)).rgb;
-  vec3 h = texture(srcTexture, vec2(frag_coord.x,     frag_coord.y - y)).rgb;
-  vec3 i = texture(srcTexture, vec2(frag_coord.x + x, frag_coord.y - y)).rgb;
+  vec3 g = texture(srcTexture, vec2(uv.x - x, uv.y - y)).rgb;
+  vec3 h = texture(srcTexture, vec2(uv.x,     uv.y - y)).rgb;
+  vec3 i = texture(srcTexture, vec2(uv.x + x, uv.y - y)).rgb;
 
   // Apply weighted distribution, by using a 3x3 tent filter:
   //  1   | 1 2 1 |

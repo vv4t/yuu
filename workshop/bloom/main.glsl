@@ -6,12 +6,11 @@ out vec4 frag_color;
 in vec2 frag_coord;
 
 void main() {
-  vec2 uv = frag_coord * 2.0 - 1.0;
-  uv.x *= resolution.x / resolution.y;
-  vec2 mp = mouse * 2.0 - 1.0;
+  vec2 uv = gl_FragCoord.xy / u_resolution * 2.0 - 1.0;
+  uv.x *= u_resolution.x / u_resolution.y;
   
-  vec3 view_pos = vec3(0.0, -3.0, -3.0);
-  mat4 view_mat = mat4(1.0) * rotate_y(mp.x * 1.5) * rotate_x(mp.y * 1.5);
+  vec3 view_pos = vec3(0.0, -3.0 + sin(u_time), -5.0);
+  mat4 view_mat = mat4(1.0) * rotate_y(sin(u_time));
   
   vec3 rd = normalize(vec3(view_mat * vec4(uv, 1.0, 1.0)));
   float td = ray_march(view_pos, rd);
@@ -33,17 +32,6 @@ void main() {
     vec3 V = normalize(view_pos - p);
     vec3 N = map_normal(p);
     light += calc_point_lighting(p, V, N, albedo, metallic, roughness);
-    
-    vec3 R = reflect(-V, N);
-    td = ray_march(p + R * 0.01, R);
-    vec3 q = p + R * td;
-    vec3 qV = normalize(p - q);
-    vec3 qN = map_normal(q);
-    vec3 qL = calc_point_lighting(q, qV, qN, albedo, metallic, roughness);
-    qL += calc_point_scatter(q, p + R * 0.01);
-    light += qL * BRDF(vec3(1.0, 1.0, 1.0), 0.1, 0.5, -qV, V, N) * 0.3;
-    
-    light += calc_point_scatter(p, view_pos);
     
     frag_color.xyz = light;
   } else {

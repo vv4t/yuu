@@ -9,11 +9,46 @@ std::vector<std::string> split_string(std::string target, char delimiter);
 scene_file_t::scene_file_t(std::string src)
   : m_base(std::filesystem::path(src).parent_path()),
     m_width(800),
-    m_height(600) {
+    m_height(600),
+    m_has_error(false) {
   Yaml::Node root;
-  Yaml::Parse(root, src.c_str());
+  
+  try {
+    Yaml::Parse(root, src.c_str());
+  } catch (const Yaml::ParsingException& e) {
+    error(e.what());
+    return;
+  }
   
   parse_scene(root);
+}
+
+bool scene_file_t::validate() {
+  if (m_has_error) {
+    return false;
+  }
+  
+  std::map<std::string, bool> buffers;
+  
+  for (auto& buffer : m_buffers) {
+    buffers[buffer.get_name()] = true;
+  }
+  
+  for (auto& pass : m_renderer) {
+    for (const std::string& input : pass.get_input()) {
+      if (buffers.find(input) == buffers.end()) {
+        error("buffer '" + input + "' does not exist.");
+      }
+    }
+    
+    for (const std::string& input : pass.get_output()) {
+      if (buffers.find(input) == buffers.end()) {
+        error("buffer '" + input + "' does not exist.");
+      }
+    }
+  }
+  
+  return !m_has_error;
 }
 
 bool scene_file_t::parse_scene(Yaml::Node& node) {
@@ -178,6 +213,7 @@ void scene_file_t::type_error(std::string name, std::string type) {
 
 void scene_file_t::error(std::string message) {
   std::cerr << "error: " << message << std::endl;
+  m_has_error = true;
 }
 
 std::vector<std::string> split_string(std::string target, char delimiter) {

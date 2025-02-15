@@ -16,7 +16,7 @@ texture_t::texture_t(const char *src) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA,
@@ -29,6 +29,8 @@ texture_t::texture_t(const char *src) {
   SDL_FreeSurface(surface);
   
   m_type = GL_TEXTURE_2D;
+  m_width = surface->w;
+  m_height = surface->h;
 }
 
 texture_t::texture_t(int width, int height, GLuint format, GLuint internalformat, GLuint type, std::vector<unsigned int> data) {
@@ -36,10 +38,12 @@ texture_t::texture_t(int width, int height, GLuint format, GLuint internalformat
   glBindTexture(GL_TEXTURE_2D, m_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, data.data());
   m_type = GL_TEXTURE_2D;
+  m_width = width;
+  m_height = height;
 }
 
 texture_t::texture_t(int width, int height, GLuint format, GLuint internalformat, GLuint type) {
@@ -47,10 +51,12 @@ texture_t::texture_t(int width, int height, GLuint format, GLuint internalformat
   glBindTexture(GL_TEXTURE_2D, m_texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
   m_type = GL_TEXTURE_2D;
+  m_width = width;
+  m_height = height;
 }
 
 void texture_t::bind(int channel) {

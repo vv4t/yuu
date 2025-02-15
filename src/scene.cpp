@@ -11,6 +11,9 @@ scene_t::scene_t(scene_file_t& scene_file)
   m_time(0.0) {
   m_passes.reserve(16);
   
+  m_width = scene_file.get_width();
+  m_height = scene_file.get_height();
+  
   for (auto& buffer : scene_file.get_buffers()) {
     add_buffer(
       buffer.get_name(),
@@ -34,9 +37,6 @@ scene_t::scene_t(scene_file_t& scene_file)
       pass.get_output()
     );
   }
-  
-  float resolution[] = { 800, 600 };
-  m_ubo.sub("u_resolution", resolution, 0, sizeof(resolution));
 }
 
 void scene_t::render() {
@@ -44,7 +44,7 @@ void scene_t::render() {
   m_ubo.sub("u_time", &m_time, 0, sizeof(m_time));
   
   for (auto& pass : m_passes) {
-    pass.bind();
+    pass.bind(m_ubo);
     m_mesh.draw();
   }
 }
@@ -55,12 +55,17 @@ void scene_t::add_pass(std::string shader, std::vector<std::string> input, std::
     bindings.push_back(m_textures.at(name));
   }
   
+  int width = m_width, height = m_height;
+  
   std::vector<texture_ref_t> target;
   for (auto& name : output) {
-    target.push_back(m_textures.at(name));
+    texture_t& buffer = m_textures.at(name);
+    target.push_back(buffer);
+    width = std::min(buffer.get_width(), width);
+    height = std::min(buffer.get_height(), height);
   }
   
-  m_passes.emplace_back(m_shaders.at(shader), bindings, target);
+  m_passes.emplace_back(m_shaders.at(shader), bindings, target, width, height);
 }
 
 void scene_t::add_buffer(std::string name, int width, int height) {
@@ -84,10 +89,12 @@ void main() { gl_Position = vec4(v_pos, 0.0, 1.0); }
   }
 }
 
-scene_t::pass_t::pass_t(shader_t& shader, std::vector<texture_ref_t> input, std::vector<texture_ref_t> output)
+scene_t::pass_t::pass_t(shader_t& shader, std::vector<texture_ref_t> input, std::vector<texture_ref_t> output, int width, int height)
   : m_shader(shader),
     m_bindings(input),
-    m_target(create_target(output)) {}
+    m_target(create_target(output)),
+    m_width(width),
+    m_height(height) {}
 
 target_t create_target(std::vector<texture_ref_t> output) {
   std::vector<binding_t> bindings;
@@ -99,7 +106,11 @@ target_t create_target(std::vector<texture_ref_t> output) {
   return target_t(bindings);
 }
 
-void scene_t::pass_t::bind() {
+void scene_t::pass_t::bind(ubo_t& ubo) {
+  glViewport(0, 0, m_width, m_height);
+  float resolution[] = { m_width, m_height };
+  ubo.sub("u_resolution", resolution, 0, sizeof(resolution));
+  
   m_shader.bind();
   for (unsigned long int i = 0; i < m_bindings.size(); i++) {
     m_bindings[i].get().bind(i);

@@ -1,13 +1,10 @@
 scene:
   buffers:
-    a: default
-    b: default
+    one: default
+    two: default
   shaders:
     main:
-      src: main.frag
-      channels: u_buffer
-    test:
-      src: test.frag
-      channels: u_buffer
+      src: main.glsl
+      channels: a b
   renderer:
-    - test
+    - main a,b -> b,c

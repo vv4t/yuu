@@ -8,6 +8,8 @@ class texture_t {
 private:
   GLuint m_texture;
   GLuint m_type;
+  int m_width;
+  int m_height;
 
 public:
   texture_t(const char *src);
@@ -16,6 +18,8 @@ public:
   ~texture_t();
   void bind(int channel);
   GLuint get_texture() const;
+  int get_width() { return m_width; }
+  int get_height() { return m_height; }
 };
 
 using texture_ref_t = std::reference_wrapper<texture_t>;

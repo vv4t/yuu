@@ -22,10 +22,10 @@ float map(vec3 p) {
   
   for (float z = -gap; z <= gap; z += gap) {
     for (float x = -gap; x <= gap; x += gap) {
-      float s = pow(cos(-p.y + time * 4.0), 2.0) * pow(cos(-p.y * 0.3 + time * 3.0), 2.0) * 0.4 + 0.1;
+      float s = pow(cos(-p.y + u_time * 4.0), 2.0) * pow(cos(-p.y * 0.3 + u_time * 3.0), 2.0) * 0.4 + 0.1;
       float pole = cube(q, o + vec3(x, 0.0, z), vec3(s, h, s));
       
-      float rt = time * os + ot;
+      float rt = u_time * os + ot;
       vec3 qo = (q - o);
       vec3 rq = qo * mat3(rotate_y(rt)) + o;
       vec3 ro = o + vec3(0.0, cos(atan(qo.z, qo.x) * 3.0), 0.0);
@@ -55,15 +55,13 @@ float ray_intersect(vec3 ro, vec3 rd)
 }
 
 out vec4 frag_color;
-in vec2 frag_coord;
 
 void main() {
-  vec2 uv = frag_coord * 2.0 - 1.0;
-  uv.x *= resolution.x / resolution.y;
-  vec2 mp = mouse * 2.0 - 1.0;
+  vec2 uv = gl_FragCoord.xy / u_resolution * 2.0 - 1.0;
+  uv.x *= u_resolution.x / u_resolution.y;
   
-  vec3 view_pos = vec3(0.0, 0.0, time * 4.0);
-  mat4 view_mat = mat4(1.0) * rotate_y(mp.x) * rotate_x(mp.y);
+  vec3 view_pos = vec3(0.0, 0.0, u_time * 4.0);
+  mat4 view_mat = mat4(1.0);
   
   vec3 ld = normalize(vec3(+0.5, -0.5, +0.25));
   
@@ -80,7 +78,7 @@ void main() {
     
     frag_color.xyz = light;
   } else {
-    float q = 0.5 + (0.5 - frag_coord.y) * 0.3;
+    float q = 0.5 + (0.5 - uv.y) * 0.3;
     frag_color.xyz = vec3(q, q, 1.0);
   }
   frag_color.w = 1.0;
