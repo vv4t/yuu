@@ -1,5 +1,8 @@
 #include "scene_file.hpp"
 
+#include <string.h>
+#include <errno.h>
+#include <fstream>
 #include <iostream>
 #include <regex>
 #include <sstream>
@@ -15,8 +18,8 @@ scene_file_t::scene_file_t(std::string src)
   
   try {
     Yaml::Parse(root, src.c_str());
-  } catch (const Yaml::ParsingException& e) {
-    error(e.what());
+  } catch (const std::exception& e) {
+    error(src + ": " + e.what());
     return;
   }
   
@@ -29,22 +32,30 @@ bool scene_file_t::validate() {
   }
   
   std::map<std::string, bool> buffers;
+  std::map<std::string, bool> shaders;
   
   for (auto& buffer : m_buffers) {
     buffers[buffer.get_name()] = true;
   }
   
+  for (auto& shader : m_shaders) {
+    std::ifstream f(shader.get_src());
+    if (!f.good()) error(shader.get_src() + ": " + strerror(errno));
+    shaders[shader.get_name()] = true;
+  }
+  
   for (auto& pass : m_renderer) {
+    if (shaders.find(pass.get_shader()) == shaders.end())
+      error("shader '" + pass.get_shader() + "' does not exist.");
+    
     for (const std::string& input : pass.get_input()) {
-      if (buffers.find(input) == buffers.end()) {
+      if (buffers.find(input) == buffers.end())
         error("buffer '" + input + "' does not exist.");
-      }
     }
     
     for (const std::string& input : pass.get_output()) {
-      if (buffers.find(input) == buffers.end()) {
+      if (buffers.find(input) == buffers.end())
         error("buffer '" + input + "' does not exist.");
-      }
     }
   }
   
@@ -152,6 +163,7 @@ bool scene_file_t::parse_buffers(Yaml::Node& node) {
   if (buffers.IsNone()) return true;
   else if (!expect_map(buffers, "buffers")) return false;
   
+  std::regex match_image("load \"(.*)\"");
   std::regex match_width_height("(\\d+)x(\\d+)");
   std::regex match_default("default");
   

@@ -5,64 +5,34 @@
 #define MAX_DISTANCE 1000.0
 #define MAX_STEPS 64
 
-struct hit_t {
-  float d;
-  int id;
-};
+#pragma use "trace.glsl"
 
-hit_t map(vec3 p);
+trace_t sdf(vec3 p);
 
-float cube(vec3 p, vec3 o, vec3 s) {
-  vec3 d = abs(p - o) - s;
-  return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
-}
-
-float sphere(vec3 p, vec3 o, float r) {
-  return length(p - o) - r;
-}
-
-float plane(vec3 p, vec3 n, float d) {
-  return dot(p, n) - d;
-}
-
-hit_t map_cmp(hit_t s, int id, float d) {
-  if (d < s.d) {
-    s.d = d;
-    s.id = id;
-  }
-  
-  return s;
-}
-
-vec3 map_normal(vec3 p) {
+vec3 sdf_get_normal(vec3 p) {
   float dp = 0.001;
-  hit_t d = map(p);
-  hit_t dx = map(p + vec3(dp, 0.0, 0.0));
-  hit_t dy = map(p + vec3(0.0, dp, 0.0));
-  hit_t dz = map(p + vec3(0.0, 0.0, dp));
+  trace_t d = sdf(p);
+  trace_t dx = sdf(p + vec3(dp, 0.0, 0.0));
+  trace_t dy = sdf(p + vec3(0.0, dp, 0.0));
+  trace_t dz = sdf(p + vec3(0.0, 0.0, dp));
   
   vec3 N = normalize(vec3(dx.d, dy.d, dz.d) - d.d);
   
   return N;
 }
 
-hit_t ray_march(vec3 ro, vec3 rd)
+trace_t ray_march(vec3 ro, vec3 rd)
 {
-  hit_t td;
-  td.d = 0.0;
-  td.id = 0;
+  float td = 0.0;
   
   for (int i = 0; i < MAX_STEPS; i++) {
-    hit_t d = map(ro + rd * td.d);
-    td.id = d.id;
-    if (d.d < MIN_DISTANCE) return td;
-    if (td.d > MAX_DISTANCE) break;
-    td.d += d.d;
+    trace_t tr = sdf(ro + rd * td);
+    if (tr.d < MIN_DISTANCE) return tr;
+    if (td > MAX_DISTANCE) break;
+    td += tr.d;
   }
   
-  td.d = MAX_DISTANCE;
-  td.id = 0;
-  return td;
+  return new_trace(0, MAX_DISTANCE);
 }
 
 #endif

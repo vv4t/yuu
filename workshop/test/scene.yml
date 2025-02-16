@@ -1,10 +1,8 @@
 scene:
   buffers:
-    one: default
-    two: default
+    first: load_image "abcd.png"
   shaders:
     main:
-      src: main.glsl
-      channels: a b
+      src: test.frag
   renderer:
-    - main a,b -> b,c
+    - main
