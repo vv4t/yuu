@@ -40,6 +40,7 @@ public:
   void render();
   
   void add_buffer(std::string name, int width, int height);
+  void add_image(std::string name, std::string src);
   void add_shader(std::string name, std::string src, std::vector<std::string> channels);
   void add_pass(std::string shader, std::vector<std::string> input, std::vector<std::string> output);
 };

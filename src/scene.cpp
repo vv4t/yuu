@@ -22,6 +22,21 @@ scene_t::scene_t(scene_file_t& scene_file)
     );
   }
   
+  for (auto& image : scene_file.get_images()) {
+    add_image(
+      image.get_name(),
+      image.get_src()
+    );
+  }
+  
+  for (auto& buffer : scene_file.get_buffers()) {
+    add_buffer(
+      buffer.get_name(),
+      buffer.get_width(),
+      buffer.get_height()
+    );
+  }
+  
   for (auto& shader : scene_file.get_shaders()) {
     add_shader(
       shader.get_name(),
@@ -70,6 +85,10 @@ void scene_t::add_pass(std::string shader, std::vector<std::string> input, std::
 
 void scene_t::add_buffer(std::string name, int width, int height) {
   m_textures.try_emplace(name, width, height, GL_RGBA, GL_RGBA32F, GL_FLOAT);
+}
+
+void scene_t::add_image(std::string name, std::string src) {
+  m_textures.try_emplace(name, src.c_str());
 }
 
 void scene_t::add_shader(std::string name, std::string src, std::vector<std::string> channels) {

@@ -1,5 +1,8 @@
 out vec4 frag_color;
 
+uniform sampler2D thing;
+
 void main() {
-  frag_color = vec4(1.0);
+  vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+  frag_color = texture(thing, uv);
 }

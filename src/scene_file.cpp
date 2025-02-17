@@ -38,6 +38,12 @@ bool scene_file_t::validate() {
     buffers[buffer.get_name()] = true;
   }
   
+  for (auto& image : m_images) {
+    std::ifstream f(image.get_src());
+    if (!f.good()) error(image.get_src() + ": " + strerror(errno));
+    buffers[image.get_name()] = true;
+  }
+  
   for (auto& shader : m_shaders) {
     std::ifstream f(shader.get_src());
     if (!f.good()) error(shader.get_src() + ": " + strerror(errno));
@@ -163,7 +169,7 @@ bool scene_file_t::parse_buffers(Yaml::Node& node) {
   if (buffers.IsNone()) return true;
   else if (!expect_map(buffers, "buffers")) return false;
   
-  std::regex match_image("load \"(.*)\"");
+  std::regex match_image("load_image (.*)");
   std::regex match_width_height("(\\d+)x(\\d+)");
   std::regex match_default("default");
   
@@ -179,10 +185,14 @@ bool scene_file_t::parse_buffers(Yaml::Node& node) {
       int width = std::stoi(matches[1].str());
       int height = std::stoi(matches[2].str());
       m_buffers.push_back(scene_file_t::buffer_t(name, width, height));
+    } else if (std::regex_match(buffer, matches, match_image)) {
+      std::string src = matches[1].str();
+      std::filesystem::path full = m_base / std::filesystem::path(src);
+      m_images.push_back(image_t(name, full.u8string()));
     } else if (std::regex_match(buffer, matches, match_default)) {
       m_buffers.push_back(scene_file_t::buffer_t(name, m_width, m_height));
     } else {
-      type_error("buffer", "'default' or [width]x[height]");
+      type_error("buffer", "'default', [width]x[height] or load_image [image].");
     }
   }
   

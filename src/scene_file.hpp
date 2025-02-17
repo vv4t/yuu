@@ -26,6 +26,20 @@ public:
     int get_height() { return m_height; }
   };
   
+  class image_t {
+  private:
+    std::string m_name;
+    std::string m_src;
+  
+  public:
+    image_t(std::string name, std::string src)
+      : m_name(name),
+        m_src(src) {}
+    
+    std::string get_name() { return m_name; }
+    std::string get_src() { return m_src; }
+  };
+  
   class shader_t {
   private:
     std::string m_name;
@@ -72,6 +86,7 @@ private:
   bool m_has_error;
   
   std::vector<buffer_t> m_buffers;
+  std::vector<image_t> m_images;
   std::vector<shader_t> m_shaders;
   std::vector<pass_t> m_renderer;
 
@@ -91,6 +106,7 @@ public:
   scene_file_t(std::string src);
   bool validate();
   std::vector<buffer_t> get_buffers() { return m_buffers; }
+  std::vector<image_t> get_images() { return m_images; }
   std::vector<shader_t> get_shaders() { return m_shaders; }
   std::vector<pass_t> get_renderer() { return m_renderer; }
   int get_width() { return m_width; }
