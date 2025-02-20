@@ -1,4 +1,3 @@
-in vec2 frag_coord;
 out vec4 frag_color;
 
 uniform sampler2D srcTexture;
@@ -6,7 +5,8 @@ uniform sampler2D srcTexture;
 // https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
 void main()
 {
-  vec2 srcTexelSize = 1.0 / resolution;
+  vec2 uv = gl_FragCoord.xy / u_resolution;
+  vec2 srcTexelSize = 1.0 / u_resolution;
   float x = srcTexelSize.x;
   float y = srcTexelSize.y;
 
@@ -17,22 +17,22 @@ void main()
   // - l - m -
   // g - h - i
   // === ('e' is the current texel) ===
-  vec3 a = texture(srcTexture, vec2(frag_coord.x - 2.0*x, frag_coord.y + 2.0*y)).rgb;
-  vec3 b = texture(srcTexture, vec2(frag_coord.x,       frag_coord.y + 2.0*y)).rgb;
-  vec3 c = texture(srcTexture, vec2(frag_coord.x + 2.0*x, frag_coord.y + 2.0*y)).rgb;
+  vec3 a = texture(srcTexture, vec2(uv.x - 2.0*x, uv.y + 2.0*y)).rgb;
+  vec3 b = texture(srcTexture, vec2(uv.x,       uv.y + 2.0*y)).rgb;
+  vec3 c = texture(srcTexture, vec2(uv.x + 2.0*x, uv.y + 2.0*y)).rgb;
 
-  vec3 d = texture(srcTexture, vec2(frag_coord.x - 2.0*x, frag_coord.y)).rgb;
-  vec3 e = texture(srcTexture, vec2(frag_coord.x,       frag_coord.y)).rgb;
-  vec3 f = texture(srcTexture, vec2(frag_coord.x + 2.0*x, frag_coord.y)).rgb;
+  vec3 d = texture(srcTexture, vec2(uv.x - 2.0*x, uv.y)).rgb;
+  vec3 e = texture(srcTexture, vec2(uv.x,       uv.y)).rgb;
+  vec3 f = texture(srcTexture, vec2(uv.x + 2.0*x, uv.y)).rgb;
 
-  vec3 g = texture(srcTexture, vec2(frag_coord.x - 2.0*x, frag_coord.y - 2.0*y)).rgb;
-  vec3 h = texture(srcTexture, vec2(frag_coord.x,       frag_coord.y - 2.0*y)).rgb;
-  vec3 i = texture(srcTexture, vec2(frag_coord.x + 2.0*x, frag_coord.y - 2.0*y)).rgb;
+  vec3 g = texture(srcTexture, vec2(uv.x - 2.0*x, uv.y - 2.0*y)).rgb;
+  vec3 h = texture(srcTexture, vec2(uv.x,       uv.y - 2.0*y)).rgb;
+  vec3 i = texture(srcTexture, vec2(uv.x + 2.0*x, uv.y - 2.0*y)).rgb;
 
-  vec3 j = texture(srcTexture, vec2(frag_coord.x - x, frag_coord.y + y)).rgb;
-  vec3 k = texture(srcTexture, vec2(frag_coord.x + x, frag_coord.y + y)).rgb;
-  vec3 l = texture(srcTexture, vec2(frag_coord.x - x, frag_coord.y - y)).rgb;
-  vec3 m = texture(srcTexture, vec2(frag_coord.x + x, frag_coord.y - y)).rgb;
+  vec3 j = texture(srcTexture, vec2(uv.x - x, uv.y + y)).rgb;
+  vec3 k = texture(srcTexture, vec2(uv.x + x, uv.y + y)).rgb;
+  vec3 l = texture(srcTexture, vec2(uv.x - x, uv.y - y)).rgb;
+  vec3 m = texture(srcTexture, vec2(uv.x + x, uv.y - y)).rgb;
 
   // Apply weighted distribution:
   // 0.5 + 0.125 + 0.125 + 0.125 + 0.125 = 1

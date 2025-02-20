@@ -1,6 +1,6 @@
 scene:
   shaders:
     main:
-      src: forest.glsl
+      src: main.glsl
   renderer:
     - main

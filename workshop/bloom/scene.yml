@@ -2,108 +2,37 @@ scene:
   width: 800
   height: 600
   buffers:
-    luminance:
-    bloom:
-    buffer:
-    mip1:
-      width: 600
-      height: 400
-    mip2:
-      width: 400
-      height: 300
-    mip3:
-      width: 200
-      height: 150
-    mip4:
-      width: 100
-      height: 75
+    luminance: default
+    bloom: default
+    buffer: default
+    mip1: 600x400
+    mip2: 400x300
+    mip3: 200x150
+    mip4: 100x75
   shaders:
     main:
       src: main.glsl
     mix:
       src: mix.glsl
-      channels:
-        - first
-        - second
+      channels: first second
     tonemap:
       src: ../post-process/tonemap.glsl
-      channels:
-        - srcTexture
+      channels: srcTexture
     downsample:
       src: ../post-process/downsample.glsl
-      channels:
-        - srcTexture
+      channels: srcTexture
     upsample:
       src: ../post-process/upsample.glsl
-      channels:
-        - srcTexture
-  passes:
-    -
-      shader: main
-      output:
-        - luminance
-    -
-      shader: downsample
-      input:
-        - luminance
-      output:
-        - mip1
-    -
-      shader: downsample
-      input:
-        - mip1
-      output:
-        - mip2
-    -
-      shader: downsample
-      input:
-        - mip2
-      output:
-        - mip3
-    -
-      shader: downsample
-      input:
-        - mip3
-      output:
-        - mip4
-    -
-      shader: upsample
-      input:
-        - mip4
-      output:
-        - mip3
-    -
-      shader: upsample
-      input:
-        - mip3
-      output:
-        - mip2
-    -
-      shader: upsample
-      input:
-        - mip2
-      output:
-        - mip1
-    -
-      shader: upsample
-      input:
-        - mip2
-      output:
-        - mip1
-    -
-      shader: upsample
-      input:
-        - mip1
-      output:
-        - bloom
-    -
-      shader: mix
-      input:
-        - bloom
-        - luminance
-      output:
-        - buffer
-    -
-      shader: tonemap
-      input:
-        - buffer
+      channels: srcTexture
+  renderer:
+    - main -> luminance
+    - downsample luminance -> mip1
+    - downsample mip1 -> mip2
+    - downsample mip2 -> mip3
+    - downsample mip3 -> mip4
+    - upsample mip4 -> mip3
+    - upsample mip3 -> mip2
+    - upsample mip2 -> mip1
+    - upsample mip1 -> bloom
+    - mix bloom,luminance -> buffer
+    - tonemap buffer

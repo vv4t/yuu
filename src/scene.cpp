@@ -1,97 +1,138 @@
-#include "scene.h"
-#include <fstream>
-#include <sstream>
-#include <iostream>
+#include "scene.hpp"
 
-scene_t::scene_t(int width, int height, ubo_input_t& ubo_input)
-  : m_input(ubo_input), m_width(width), m_height(height), m_frame(0) {
-  m_passes.reserve(64);
-}
+static target_t create_target(std::vector<texture_ref_t> output);
 
-void scene_t::render(quad_mesh_t& mesh) {
-  m_input.set_frame(m_frame);
-  m_input.randomize();
-  for (pass_t& pass : m_passes) {
-    pass.begin(m_input);
-    mesh.draw();
-    pass.end();
-  }
-  m_frame++;
-}
-
-void scene_t::shader_add(std::string name, std::vector<std::string> channels, std::string src) {
-  std::stringstream src_vertex, src_fragment;
-  src_vertex << R"(
-layout (location = 0) in vec2 v_pos;
-layout (location = 1) in vec2 v_uv;
-
-out vec2 frag_coord;
-
-void main() {
-  frag_coord = v_uv;
-  gl_Position = vec4(v_pos, 0.0, 1.0);
-}
-  )";
-  src_fragment << R"(
-layout (std140) uniform ubo_input {
-  vec2 resolution;
-  vec2 mouse;
-  vec3 seed;
-  float time;
-  int frame;
-};
-  )";
-  src_fragment << shader_read_source(src.c_str()).rdbuf() << std::endl;
-  m_shaders.try_emplace(name, src_vertex, src_fragment);
+scene_t::scene_t(scene_file_t& scene_file)
+  : m_ubo(0, {
+    ubo_t::field_t(ubo_t::VEC2, "u_resolution"),
+    ubo_t::field_t(ubo_t::FLOAT, "u_time"),
+    ubo_t::field_t(ubo_t::FLOAT, "u_frame")
+  }),
+  m_time(0.0) {
+  m_passes.reserve(16);
   
-  shader_t& shader = m_shaders.at(name);
-  m_input.attach_shader(shader);
-  shader.bind();
-  for (std::size_t i = 0; i < channels.size(); i++) {
-    GLuint location = shader.get_uniform_location(channels[i].c_str());
-    glUniform1i(location, i);
+  m_width = scene_file.get_width();
+  m_height = scene_file.get_height();
+  
+  for (auto& buffer : scene_file.get_buffers()) {
+    add_buffer(
+      buffer.get_name(),
+      buffer.get_width(),
+      buffer.get_height()
+    );
+  }
+  
+  for (auto& image : scene_file.get_images()) {
+    add_image(
+      image.get_name(),
+      image.get_src()
+    );
+  }
+  
+  for (auto& buffer : scene_file.get_buffers()) {
+    add_buffer(
+      buffer.get_name(),
+      buffer.get_width(),
+      buffer.get_height()
+    );
+  }
+  
+  for (auto& shader : scene_file.get_shaders()) {
+    add_shader(
+      shader.get_name(),
+      shader.get_src(),
+      shader.get_channels()
+    );
+  }
+  
+  for (auto& pass : scene_file.get_renderer()) {
+    add_pass(
+      pass.get_shader(),
+      pass.get_input(),
+      pass.get_output()
+    );
   }
 }
 
-void scene_t::image_add(std::string name, std::string src) {
-  m_textures.try_emplace(name, src.c_str());
+void scene_t::render() {
+  m_time += 0.015;
+  m_ubo.sub("u_time", &m_time, 0, sizeof(m_time));
+  
+  for (auto& pass : m_passes) {
+    pass.bind(m_ubo);
+    m_mesh.draw();
+  }
 }
 
-void scene_t::buffer_add(std::string name, int width, int height) {
+void scene_t::add_pass(std::string shader, std::vector<std::string> input, std::vector<std::string> output) {
+  std::vector<texture_ref_t> bindings;
+  for (auto& name : input) {
+    bindings.push_back(m_textures.at(name));
+  }
+  
+  int width = m_width, height = m_height;
+  
+  std::vector<texture_ref_t> target;
+  for (auto& name : output) {
+    texture_t& buffer = m_textures.at(name);
+    target.push_back(buffer);
+    width = std::min(buffer.get_width(), width);
+    height = std::min(buffer.get_height(), height);
+  }
+  
+  m_passes.emplace_back(m_shaders.at(shader), bindings, target, width, height);
+}
+
+void scene_t::add_buffer(std::string name, int width, int height) {
   m_textures.try_emplace(name, width, height, GL_RGBA, GL_RGBA32F, GL_FLOAT);
 }
 
-void scene_t::pass_add(std::vector<std::string> input, std::string shader, std::vector<std::string> output) {
-  std::vector<texture_ref_t> textures;
-  for (std::string name : input) {
-    textures.push_back(m_textures.at(name));
-  }
-  
-  int width = m_width;
-  int height = m_height;
-  
-  std::vector<target_t::binding_t> bindings;
-  for (std::size_t i = 0; i < output.size(); i++) {
-    texture_t& texture = m_textures.at(output[i]);
-    width = std::min(width, texture.get_width());
-    height = std::min(height, texture.get_height());
-    bindings.push_back(target_t::binding_t(GL_COLOR_ATTACHMENT0 + i, texture));
-  }
-  
-  m_passes.emplace_back(textures, m_shaders.at(shader), bindings, width, height);
+void scene_t::add_image(std::string name, std::string src) {
+  m_textures.try_emplace(name, src.c_str());
 }
 
-void scene_t::pass_t::begin(ubo_input_t& input) {
+void scene_t::add_shader(std::string name, std::string src, std::vector<std::string> channels) {
+  std::stringstream src_vertex, src_fragment;
+  src_vertex << R"(
+layout (location = 0) in vec2 v_pos;
+void main() { gl_Position = vec4(v_pos, 0.0, 1.0); }
+  )";
+  src_fragment << m_ubo.get_definition() << std::endl;
+  src_fragment << shader_read_source(src.c_str()).rdbuf() << std::endl;
+  m_shaders.try_emplace(name, src_vertex, src_fragment);
+  shader_t& shader = m_shaders.at(name);
+  m_ubo.attach_shader(shader);
+  
+  for (long unsigned int i = 0; i < channels.size(); i++) {
+    shader.uniform_int(channels[i].c_str(), i);
+  }
+}
+
+scene_t::pass_t::pass_t(shader_t& shader, std::vector<texture_ref_t> input, std::vector<texture_ref_t> output, int width, int height)
+  : m_shader(shader),
+    m_bindings(input),
+    m_target(create_target(output)),
+    m_width(width),
+    m_height(height) {}
+
+target_t create_target(std::vector<texture_ref_t> output) {
+  std::vector<binding_t> bindings;
+  
+  for (unsigned long int i = 0; i < output.size(); i++) {
+    bindings.push_back(binding_t(GL_COLOR_ATTACHMENT0 + i, output[i]));
+  }
+  
+  return target_t(bindings);
+}
+
+void scene_t::pass_t::bind(ubo_t& ubo) {
   glViewport(0, 0, m_width, m_height);
-  input.set_viewport(m_width, m_height);
-  input.update();
-  for (std::size_t i = 0; i < m_input.size(); i++) {
-    m_input[i].get().bind(i);
-  }
+  float resolution[] = { m_width, m_height };
+  ubo.sub("u_resolution", resolution, 0, sizeof(resolution));
+  
   m_shader.bind();
+  for (unsigned long int i = 0; i < m_bindings.size(); i++) {
+    m_bindings[i].get().bind(i);
+  }
   m_target.bind();
-}
-
-void scene_t::pass_t::end() {
-  m_target.unbind();
 }

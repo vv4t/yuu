@@ -1,8 +1,8 @@
-#include "window.h"
+#include "window.hpp"
 #include <glad/glad.h>
 #include <iostream>
 
-window_t::window_t(int width, int height, const char *title) {
+window_t::window_t(int width, int height, const char *title, input_t& input) : m_input(input) {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::cerr << "error: SDL_Init: " << SDL_GetError();
     throw std::runtime_error("failed to initialise SDL");
@@ -37,11 +37,11 @@ window_t::window_t(int width, int height, const char *title) {
   m_height = height;
   m_mouse_x = 0;
   m_mouse_y = 0;
-  m_is_cursor_lock = false;
+  m_cursor_lock = false;
 }
 
-void window_t::add_input(input_ref_t input) {
-  m_input.push_back(input);
+int window_t::get_time() {
+  return SDL_GetTicks();
 }
 
 void window_t::swap() {
@@ -55,23 +55,20 @@ bool window_t::poll() {
     case SDL_QUIT:
       return false;
     case SDL_KEYUP:
-      for (input_t& input : m_input)
-        input.on_key_press(event.key.keysym.sym, false);
+      m_input.key_event(event.key.keysym.sym, false);
       break;
     case SDL_KEYDOWN:
-      for (input_t& input : m_input)
-        input.on_key_press(event.key.keysym.sym, true);
+      m_input.key_event(event.key.keysym.sym, true);
       break;
     case SDL_MOUSEMOTION:
-      if (m_is_cursor_lock) {
+      if (m_cursor_lock) {
         m_mouse_x += event.motion.xrel;
         m_mouse_y += event.motion.yrel;
       } else {
         m_mouse_x = event.motion.x;
         m_mouse_y = event.motion.y;
       }
-      for (input_t& input : m_input)
-        input.on_mouse_move(m_mouse_x / (float) m_width, 1.0 - m_mouse_y / (float) m_height);
+      m_input.move_event(m_mouse_x / (float) m_width, 1.0 - m_mouse_y / (float) m_height);
       break;
     case SDL_TEXTINPUT:
     case SDL_MOUSEBUTTONUP:
@@ -83,9 +80,9 @@ bool window_t::poll() {
   return true;
 }
 
-void window_t::cursor_lock(bool state) {
+void window_t::set_cursor_lock(bool state) {
   SDL_SetRelativeMouseMode(state ? SDL_TRUE : SDL_FALSE);
-  m_is_cursor_lock = state;
+  m_cursor_lock = state;
 }
 
 window_t::~window_t() {

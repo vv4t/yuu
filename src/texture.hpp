@@ -2,7 +2,7 @@
 #define TEXTURE_H
 
 #include <glad/glad.h>
-#include <functional>
+#include <vector>
 
 class texture_t {
 private:
@@ -13,12 +13,13 @@ private:
 
 public:
   texture_t(const char *src);
+  texture_t(int width, int height, GLuint format, GLuint internalformat, GLuint type, std::vector<unsigned int> data);
   texture_t(int width, int height, GLuint format, GLuint internalformat, GLuint type);
   ~texture_t();
   void bind(int channel);
-  int get_width() const;
-  int get_height() const;
   GLuint get_texture() const;
+  int get_width() { return m_width; }
+  int get_height() { return m_height; }
 };
 
 using texture_ref_t = std::reference_wrapper<texture_t>;

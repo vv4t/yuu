@@ -1,4 +1,4 @@
-#include "shader.h"
+#include "shader.hpp"
 #include <iostream>
 #include <fstream>
 #include <regex>
@@ -36,8 +36,18 @@ void shader_t::bind() const {
   glUseProgram(m_program);
 }
 
-GLuint shader_t::get_uniform_location(const char *name) const {
-  return glGetUniformLocation(m_program, name);
+shader_t& shader_t::uniform_int(const char* name, int value) {
+  bind();
+  GLuint location = glGetUniformLocation(m_program, name);
+  glUniform1i(location, value);
+  return *this;
+}
+
+shader_t& shader_t::uniform_float(const char* name, float value) {
+  bind();
+  GLuint location = glGetUniformLocation(m_program, name);
+  glUniform1f(location, value);
+  return *this;
 }
 
 GLuint shader_t::get_program() const {
@@ -76,17 +86,13 @@ std::stringstream shader_read_source(const char* src) {
   std::stringstream ss;
   std::ifstream in = std::ifstream(src);
   
-  if (in.fail()) {
-    throw std::runtime_error("failed to open file '" + std::string(src) + "'");
-  }
-  
   std::string line;
   while (std::getline(in, line)) {
     std::regex rgx("^\\s*#\\s*pragma use\\s+[<\"]([^>\"]*)[>\"]\\s*");
     std::smatch matches;
 
     if(std::regex_match(line, matches, rgx)) {
-      std::filesystem::path file(matches[1].str());
+      std::filesystem::path file(matches.str(1));
       std::filesystem::path base = std::filesystem::path(src).parent_path();
       std::filesystem::path full = base / file;
       ss << shader_read_source(full.u8string().c_str()).rdbuf() << std::endl;

@@ -1,4 +1,4 @@
-.PHONY=default build
+.PHONY=default build run
 
 CFLAGS=-O3 -Wall
 LDFLAGS=-lSDL2 -lSDL2_image -lm
@@ -8,6 +8,7 @@ SRC_H=$(wildcard src/*.h)
 INCLUDE=-Iinclude
 
 default: build/yuu
+	./build/yuu workshop/test/scene.yml
 
 build/yuu: $(OBJ)
 	mkdir -p build

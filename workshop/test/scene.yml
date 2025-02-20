@@ -1,0 +1,9 @@
+scene:
+  buffers:
+    first: load_image abc.jpg
+  shaders:
+    main:
+      src: test.frag
+      channels: thing
+  renderer:
+    - main

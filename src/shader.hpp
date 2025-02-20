@@ -2,6 +2,7 @@
 #define SHADER_H
 
 #include <sstream>
+#include <vector>
 #include <glad/glad.h>
 
 class shader_t {
@@ -12,7 +13,8 @@ public:
   shader_t(const std::stringstream& src_vertex, const std::stringstream& src_fragment);
   ~shader_t();
   void bind() const;
-  GLuint get_uniform_location(const char *name) const;
+  shader_t& uniform_int(const char* name, int value);
+  shader_t& uniform_float(const char* name, float value);
   GLuint get_program() const;
 };
 
