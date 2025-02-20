@@ -25,9 +25,18 @@ float plane(vec3 p, vec3 n, float d) {
   return dot(p, n) - d;
 }
 
-hit_t map_cmp(hit_t s, int id, float d) {
+hit_t map_add(hit_t s, int id, float d) {
   if (d < s.d) {
     s.d = d;
+    s.id = id;
+  }
+  
+  return s;
+}
+
+hit_t map_sub(hit_t s, int id, float d) {
+  if (-d > s.d) {
+    s.d = -d;
     s.id = id;
   }
   
