@@ -2,54 +2,22 @@ scene:
   width: 1280
   height: 720
   buffers:
-    luminance1:
-    luminance2:
-    buffer1:
-    buffer2:
+    luminance1: default
+    luminance2: default
+    buffer1: default
+    buffer2: default
   shaders:
     trace:
       src: trace.glsl
-      channels:
-        - luminance
+      channels: luminance
     output:
       src: output.glsl
-      channels:
-        - srcTexture
+      channels: srcTexture
     tonemap:
       src: ../post-process/tonemap.glsl
-      channels:
-        - luminance
-    de-noise:
-      src: de-noise.glsl
-      channels:
-        - imageData
-  passes:
-    -
-      shader: trace
-      input:
-        - luminance1
-      output:
-        - luminance2
-    -
-      shader: trace
-      input:
-        - luminance2
-      output:
-        - luminance1
-    -
-      shader: output
-      input:
-        - luminance1
-      output:
-        - buffer1
-    -
-      shader: tonemap
-      input:
-        - buffer1
-
-#      output:
-#        - buffer2
-#    -
-#      shader: de-noise
-#      input:
-#        - buffer2
+      channels: luminance
+  renderer:
+    - trace luminance1 -> luminance2
+    - trace luminance2 -> luminance1
+    - output luminance1 -> buffer1
+    - tonemap buffer1
