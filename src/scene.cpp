@@ -93,10 +93,8 @@ void scene_t::add_image(std::string name, std::string src) {
 
 void scene_t::add_shader(std::string name, std::string src, std::vector<std::string> channels) {
   std::stringstream src_vertex, src_fragment;
-  src_vertex << R"(
-layout (location = 0) in vec2 v_pos;
-void main() { gl_Position = vec4(v_pos, 0.0, 1.0); }
-  )";
+  src_vertex << "layout (location = 0) in vec2 v_pos;" << std::endl;
+  src_vertex << "void main() { gl_Position = vec4(v_pos, 0.0, 1.0); }" << std::endl;
   src_fragment << m_ubo.get_definition() << std::endl;
   src_fragment << shader_read_source(src.c_str()).rdbuf() << std::endl;
   m_shaders.try_emplace(name, src_vertex, src_fragment);

@@ -83,7 +83,7 @@ private:
 
   int m_width;
   int m_height;
-  bool m_has_error;
+  bool m_failed;
   
   std::vector<buffer_t> m_buffers;
   std::vector<image_t> m_images;

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <regex>
 #include <sstream>
+#include <unordered_set>
 
 std::vector<std::string> split_string(std::string target, char delimiter);
 
@@ -13,7 +14,7 @@ scene_file_t::scene_file_t(std::string src)
   : m_base(std::filesystem::path(src).parent_path()),
     m_width(800),
     m_height(600),
-    m_has_error(false) {
+    m_failed(false) {
   Yaml::Node root;
   
   try {
@@ -27,45 +28,45 @@ scene_file_t::scene_file_t(std::string src)
 }
 
 bool scene_file_t::validate() {
-  if (m_has_error) {
+  if (m_failed) {
     return false;
   }
   
-  std::map<std::string, bool> buffers;
-  std::map<std::string, bool> shaders;
+  std::unordered_set<std::string> buffers;
+  std::unordered_set<std::string> shaders;
   
   for (auto& buffer : m_buffers) {
-    buffers[buffer.get_name()] = true;
+    buffers.insert(buffer.get_name());
   }
   
   for (auto& image : m_images) {
     std::ifstream f(image.get_src());
     if (!f.good()) error(image.get_src() + ": " + strerror(errno));
-    buffers[image.get_name()] = true;
+    else buffers.insert(image.get_name());
   }
   
   for (auto& shader : m_shaders) {
     std::ifstream f(shader.get_src());
     if (!f.good()) error(shader.get_src() + ": " + strerror(errno));
-    shaders[shader.get_name()] = true;
+    else shaders.insert(shader.get_name());
   }
   
   for (auto& pass : m_renderer) {
-    if (shaders.find(pass.get_shader()) == shaders.end())
+    if (!shaders.count(pass.get_shader()))
       error("shader '" + pass.get_shader() + "' does not exist.");
     
     for (const std::string& input : pass.get_input()) {
-      if (buffers.find(input) == buffers.end())
+      if (!buffers.count(input))
         error("buffer '" + input + "' does not exist.");
     }
     
     for (const std::string& input : pass.get_output()) {
-      if (buffers.find(input) == buffers.end())
+      if (!buffers.count(input))
         error("buffer '" + input + "' does not exist.");
     }
   }
   
-  return !m_has_error;
+  return !m_failed;
 }
 
 bool scene_file_t::parse_scene(Yaml::Node& node) {
@@ -235,7 +236,7 @@ void scene_file_t::type_error(std::string name, std::string type) {
 
 void scene_file_t::error(std::string message) {
   std::cerr << "error: " << message << std::endl;
-  m_has_error = true;
+  m_failed = true;
 }
 
 std::vector<std::string> split_string(std::string target, char delimiter) {
