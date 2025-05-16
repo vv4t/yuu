@@ -5,30 +5,63 @@
 #define MAX_DISTANCE 1000.0
 #define MAX_STEPS 64
 
-float sdf(vec3 p);
+struct trace_t {
+  float d;
+  int id;
+};
+
+trace_t trace(int id, float d) {
+  trace_t tr;
+  tr.id = id;
+  tr.d = d;
+  return tr;
+}
+
+trace_t tr_add(trace_t a, trace_t b) {
+  return a.d < b.d ? a : b;
+}
+
+trace_t sdf(vec3 p);
 
 vec3 sdf_normal(vec3 p) {
   float dp = 0.001;
   
-  float f = sdf(p);
-  float df_dx = sdf(p + vec3(dp, 0.0, 0.0));
-  float df_dy = sdf(p + vec3(0.0, dp, 0.0));
-  float df_dz = sdf(p + vec3(0.0, 0.0, dp));
+  trace_t f = sdf(p);
+  trace_t df_dx = sdf(p + vec3(dp, 0.0, 0.0));
+  trace_t df_dy = sdf(p + vec3(0.0, dp, 0.0));
+  trace_t df_dz = sdf(p + vec3(0.0, 0.0, dp));
   
-  return normalize(vec3(df_dx, df_dy, df_dz) - f);
+  return normalize(vec3(df_dx.d, df_dy.d, df_dz.d) - f.d);
 }
 
-float ray_march(vec3 ro, vec3 rd) {
+trace_t ray_march(vec3 ro, vec3 rd) {
   float td = 0.0;
   
   for (int i = 0; i < MAX_STEPS; i++) {
-    float d = sdf(ro + rd * td);
-    if (d < MIN_DISTANCE) return d;
+    trace_t tr = sdf(ro + rd * td);
+    if (tr.d < MIN_DISTANCE) return trace(tr.id, td);
     if (td > MAX_DISTANCE) break;
-    td += d;
+    td += tr.d;
   }
   
-  return MAX_DISTANCE;
+  return trace(0, MAX_DISTANCE);
+}
+
+float sdf_union(float a, float b) {
+  return min(a, b);
+}
+
+float sdf_sub(float a, float b) {
+  return max(a, -(b - 0.05));
+}
+
+float sdf_and(float a, float b) {
+  return max(a, b);
+}
+
+float sdf_smooth_union(float a, float b, float k) {
+  float h = clamp( 0.5 + 0.5*(b-a)/k, 0.0, 1.0 );
+  return mix(b, a, h) - k*h*(1.0-h);
 }
 
 float sdf_cuboid(vec3 p, vec3 o, vec3 s) {
