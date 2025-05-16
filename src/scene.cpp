@@ -23,17 +23,16 @@ scene_t::scene_t(scene_file_t& scene_file)
   }
   
   for (auto& image : scene_file.get_images()) {
-    add_image(
+    load_image(
       image.get_name(),
       image.get_src()
     );
   }
   
-  for (auto& buffer : scene_file.get_buffers()) {
-    add_buffer(
-      buffer.get_name(),
-      buffer.get_width(),
-      buffer.get_height()
+  for (auto& cubemap : scene_file.get_cubemaps()) {
+    load_cubemap(
+      cubemap.get_name(),
+      cubemap.get_src()
     );
   }
   
@@ -64,31 +63,16 @@ void scene_t::render() {
   }
 }
 
-void scene_t::add_pass(std::string shader, std::vector<std::string> input, std::vector<std::string> output) {
-  std::vector<texture_ref_t> bindings;
-  for (auto& name : input) {
-    bindings.push_back(m_textures.at(name));
-  }
-  
-  int width = m_width, height = m_height;
-  
-  std::vector<texture_ref_t> target;
-  for (auto& name : output) {
-    texture_t& buffer = m_textures.at(name);
-    target.push_back(buffer);
-    width = std::min(buffer.get_width(), width);
-    height = std::min(buffer.get_height(), height);
-  }
-  
-  m_passes.emplace_back(m_shaders.at(shader), bindings, target, width, height);
+void scene_t::load_image(std::string name, std::string src) {
+  m_textures.try_emplace(name, src.c_str());
+}
+
+void scene_t::load_cubemap(std::string name, std::string src) {
+  m_cubemaps.try_emplace(name, src.c_str());
 }
 
 void scene_t::add_buffer(std::string name, int width, int height) {
   m_textures.try_emplace(name, width, height, GL_RGBA, GL_RGBA32F, GL_FLOAT);
-}
-
-void scene_t::add_image(std::string name, std::string src) {
-  m_textures.try_emplace(name, src.c_str());
 }
 
 void scene_t::add_shader(std::string name, std::string src, std::vector<std::string> channels) {
@@ -106,7 +90,31 @@ void scene_t::add_shader(std::string name, std::string src, std::vector<std::str
   }
 }
 
-scene_t::pass_t::pass_t(shader_t& shader, std::vector<texture_ref_t> input, std::vector<texture_ref_t> output, int width, int height)
+void scene_t::add_pass(std::string shader, std::vector<std::string> input, std::vector<std::string> output) {
+  std::vector<bindable_ref_t> bindings;
+  for (auto& name : input) {
+    if (m_textures.find(name) != m_textures.end())
+      bindings.push_back(m_textures.at(name));
+    else if (m_cubemaps.find(name) != m_cubemaps.end())
+      bindings.push_back(m_cubemaps.at(name));
+    else
+      throw std::runtime_error("buffer '" + name + "' does not exist.");
+  }
+  
+  int width = m_width, height = m_height;
+  
+  std::vector<texture_ref_t> target;
+  for (auto& name : output) {
+    texture_t& buffer = m_textures.at(name);
+    target.push_back(buffer);
+    width = std::min(buffer.get_width(), width);
+    height = std::min(buffer.get_height(), height);
+  }
+  
+  m_passes.emplace_back(m_shaders.at(shader), bindings, target, width, height);
+}
+
+scene_t::pass_t::pass_t(shader_t& shader, std::vector<bindable_ref_t> input, std::vector<texture_ref_t> output, int width, int height)
   : m_shader(shader),
     m_bindings(input),
     m_target(create_target(output)),
@@ -114,10 +122,10 @@ scene_t::pass_t::pass_t(shader_t& shader, std::vector<texture_ref_t> input, std:
     m_height(height) {}
 
 target_t create_target(std::vector<texture_ref_t> output) {
-  std::vector<binding_t> bindings;
+  std::vector<target_t::binding_t> bindings;
   
   for (unsigned long int i = 0; i < output.size(); i++) {
-    bindings.push_back(binding_t(GL_COLOR_ATTACHMENT0 + i, output[i]));
+    bindings.push_back(target_t::binding_t(GL_COLOR_ATTACHMENT0 + i, output[i]));
   }
   
   return target_t(bindings);
@@ -125,7 +133,7 @@ target_t create_target(std::vector<texture_ref_t> output) {
 
 void scene_t::pass_t::bind(ubo_t& ubo) {
   glViewport(0, 0, m_width, m_height);
-  float resolution[] = { m_width, m_height };
+  float resolution[] = { (float) m_width, (float) m_height };
   ubo.sub("u_resolution", resolution, 0, sizeof(resolution));
   
   m_shader.bind();

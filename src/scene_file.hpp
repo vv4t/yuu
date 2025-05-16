@@ -39,6 +39,20 @@ public:
     std::string get_name() { return m_name; }
     std::string get_src() { return m_src; }
   };
+
+  class cubemap_t {
+  private:
+    std::string m_name;
+    std::string m_src;
+
+  public:
+    cubemap_t(std::string name, std::string src)
+      : m_name(name),
+        m_src(src) {}
+    
+    std::string get_name() { return m_name; }
+    std::string get_src() { return m_src; }
+  };
   
   class shader_t {
   private:
@@ -85,8 +99,9 @@ private:
   int m_height;
   bool m_failed;
   
-  std::vector<buffer_t> m_buffers;
+  std::vector<cubemap_t> m_cubemaps;
   std::vector<image_t> m_images;
+  std::vector<buffer_t> m_buffers;
   std::vector<shader_t> m_shaders;
   std::vector<pass_t> m_renderer;
 
@@ -99,6 +114,7 @@ private:
   bool expect_string(Yaml::Node& root, std::string name);
   bool parse_scene(Yaml::Node& node);
   bool parse_buffers(Yaml::Node& node);
+  bool parse_cubemaps(Yaml::Node& node);
   bool parse_shaders(Yaml::Node& node);
   bool parse_renderer(Yaml::Node& node);
 
@@ -107,6 +123,7 @@ public:
   bool validate();
   std::vector<buffer_t> get_buffers() { return m_buffers; }
   std::vector<image_t> get_images() { return m_images; }
+  std::vector<cubemap_t> get_cubemaps() { return m_cubemaps; }
   std::vector<shader_t> get_shaders() { return m_shaders; }
   std::vector<pass_t> get_renderer() { return m_renderer; }
   int get_width() { return m_width; }

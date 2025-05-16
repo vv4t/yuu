@@ -38,11 +38,17 @@ bool scene_file_t::validate() {
   for (auto& buffer : m_buffers) {
     buffers.insert(buffer.get_name());
   }
-  
+
   for (auto& image : m_images) {
     std::ifstream f(image.get_src());
     if (!f.good()) error(image.get_src() + ": " + strerror(errno));
     else buffers.insert(image.get_name());
+  }
+
+  for (auto& cubemap : m_cubemaps) {
+    std::ifstream f(cubemap.get_src());
+    if (!f.good()) error(cubemap.get_src() + ": " + strerror(errno));
+    else buffers.insert(cubemap.get_name());
   }
   
   for (auto& shader : m_shaders) {
@@ -60,9 +66,9 @@ bool scene_file_t::validate() {
         error("buffer '" + input + "' does not exist.");
     }
     
-    for (const std::string& input : pass.get_output()) {
-      if (!buffers.count(input))
-        error("buffer '" + input + "' does not exist.");
+    for (const std::string& output : pass.get_output()) {
+      if (!buffers.count(output))
+        error("buffer '" + output + "' does not exist.");
     }
   }
   
@@ -72,6 +78,21 @@ bool scene_file_t::validate() {
 bool scene_file_t::parse_scene(Yaml::Node& node) {
   Yaml::Node& scene = node["scene"];
   if (!expect_map(scene, "scene")) return false;
+
+  for (auto it = scene.Begin(); it != scene.End(); it++) {
+    std::string name = (*it).first;
+    if (
+      name != "width"
+      && name != "height"
+      && name != "buffers"
+      && name != "cubemaps"
+      && name != "shaders"
+      && name != "renderer"
+    ) {
+      error("invalid key '" + name + "'.");
+      return false;
+    }
+  }
   
   Yaml::Node& width = scene["width"];
   Yaml::Node& height = scene["height"];
@@ -87,6 +108,7 @@ bool scene_file_t::parse_scene(Yaml::Node& node) {
   }
   
   if (!parse_buffers(scene)) return false;
+  if (!parse_cubemaps(scene)) return false;
   if (!parse_shaders(scene)) return false;
   if (!parse_renderer(scene)) return false;
   
@@ -159,7 +181,7 @@ bool scene_file_t::parse_shaders(Yaml::Node& node) {
       channels = split_string(channels_node.As<std::string>(), ' ');
     }
     
-    m_shaders.push_back(scene_file_t::shader_t(name, full.u8string(), channels));
+    m_shaders.push_back(scene_file_t::shader_t(name, full.string(), channels));
   }
   
   return true;
@@ -193,10 +215,39 @@ bool scene_file_t::parse_buffers(Yaml::Node& node) {
     } else if (std::regex_match(buffer, matches, match_default)) {
       m_buffers.push_back(scene_file_t::buffer_t(name, m_width, m_height));
     } else {
-      type_error("buffer", "'default', [width]x[height] or load_image [image].");
+      type_error("buffer", "'default', '[width]x[height]' or 'load_image [image]'.");
+      return false;
     }
   }
   
+  return true;
+}
+
+bool scene_file_t::parse_cubemaps(Yaml::Node& node) {
+  Yaml::Node& cubemaps = node["cubemaps"];
+  if (cubemaps.IsNone()) return true;
+  else if (!expect_map(cubemaps, "cubemaps")) return false;
+
+  std::regex match_cubemap("load_cubemap (.*)");
+  
+  for (auto it = cubemaps.Begin(); it != cubemaps.End(); it++) {
+    std::string name = (*it).first;
+    Yaml::Node& body = (*it).second;
+    if (!expect_string(body, name.c_str())) return false;
+
+    std::string cubemap = body.As<std::string>();
+    std::smatch matches;
+
+    if (std::regex_match(cubemap, matches, match_cubemap)) {
+      std::string src = matches[1].str();
+      std::filesystem::path full = m_base / std::filesystem::path(src);
+      m_cubemaps.push_back(cubemap_t(name, full.u8string()));
+    } else {
+      type_error("cubemap", "'load_cubemap [cubemap]'");
+      return false;
+    }
+  }
+
   return true;
 }
 

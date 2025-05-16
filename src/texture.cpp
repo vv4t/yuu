@@ -19,9 +19,14 @@ texture_t::texture_t(const char *src) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   
   glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA,
-    surface->w, surface->h,
-    0, surface_format(surface), GL_UNSIGNED_BYTE,
+    GL_TEXTURE_2D,
+    0,
+    GL_RGBA,
+    surface->w,
+    surface->h,
+    0,
+    surface_format(surface),
+    GL_UNSIGNED_BYTE,
     surface->pixels
   );
   

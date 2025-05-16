@@ -73,7 +73,7 @@ GLuint shader_compile(GLuint type, const char* src) {
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
   
   if (!success) {
-    static GLchar info[1024];
+    static GLchar info[4096];
     glGetShaderInfoLog(shader, sizeof(info), NULL, info);
     std::cerr << "error: shader_compile: " << info;
     throw std::runtime_error("failed to compile shader");

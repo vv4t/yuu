@@ -1,0 +1,14 @@
+scene:
+  buffers:
+    first: load_image image.png
+    second: default
+  shaders:
+    put_image:
+      src: image.glsl
+      channels: image
+    make_brighter:
+      src: bright.glsl
+      channels: buffer1
+  renderer:
+    - put_image first -> second
+    - make_brighter second

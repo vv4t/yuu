@@ -1,0 +1,9 @@
+scene:
+  cubemaps:
+    sky: load_cubemap sky
+  shaders:
+    draw_cubemap:
+      src: cubemap.glsl
+      channels: sky
+  renderer:
+    - draw_cubemap sky
