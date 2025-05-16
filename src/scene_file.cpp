@@ -85,7 +85,6 @@ bool scene_file_t::parse_scene(Yaml::Node& node) {
       name != "width"
       && name != "height"
       && name != "buffers"
-      && name != "cubemaps"
       && name != "shaders"
       && name != "renderer"
     ) {

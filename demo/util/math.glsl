@@ -3,7 +3,7 @@
 
 #define M_PI 3.14159265358979323846264338327950288
 
-mat4 rotateX(float t)
+mat4 rotate_x(float t)
 {
   return mat4(
     vec4(1.0, 0.0, 0.0, 0.0),
@@ -13,7 +13,7 @@ mat4 rotateX(float t)
   );
 }
 
-mat4 rotateY(float t)
+mat4 rotate_y(float t)
 {
   return mat4(
     vec4(cos(t), 0.0, -sin(t), 0.0),

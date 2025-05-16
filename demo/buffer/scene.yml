@@ -1,6 +1,6 @@
 scene:
   buffers:
-    first: load_image image.png
+    first: load_image ../assets/foo.png
     second: default
   shaders:
     put_image:

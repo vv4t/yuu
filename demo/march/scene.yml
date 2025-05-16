@@ -2,8 +2,8 @@ scene:
   buffers:
     sky: load_cubemap ../assets/bluesky
   shaders:
-    draw_cubemap:
-      src: cubemap.glsl
+    main:
+      src: main.glsl
       channels: sky
   renderer:
-    - draw_cubemap sky
+    - main sky
