@@ -108,7 +108,6 @@ bool scene_file_t::parse_scene(Yaml::Node& node) {
   }
   
   if (!parse_buffers(scene)) return false;
-  if (!parse_cubemaps(scene)) return false;
   if (!parse_shaders(scene)) return false;
   if (!parse_renderer(scene)) return false;
   
@@ -193,6 +192,7 @@ bool scene_file_t::parse_buffers(Yaml::Node& node) {
   else if (!expect_map(buffers, "buffers")) return false;
   
   std::regex match_image("load_image (.*)");
+  std::regex match_cubemap("load_cubemap (.*)");
   std::regex match_width_height("(\\d+)x(\\d+)");
   std::regex match_default("default");
   
@@ -209,45 +209,19 @@ bool scene_file_t::parse_buffers(Yaml::Node& node) {
       int height = std::stoi(matches[2].str());
       m_buffers.push_back(scene_file_t::buffer_t(name, width, height));
     } else if (std::regex_match(buffer, matches, match_image)) {
-      std::string src = matches[1].str();
-      std::filesystem::path full = m_base / std::filesystem::path(src);
-      m_images.push_back(image_t(name, full.u8string()));
+      std::filesystem::path src = m_base / std::filesystem::path(matches[1].str());
+      m_images.push_back(image_t(name, src.string()));
+    } else if (std::regex_match(buffer, matches, match_cubemap)) {
+      std::filesystem::path src = m_base / std::filesystem::path(matches[1].str());
+      m_cubemaps.push_back(cubemap_t(name, src.string()));
     } else if (std::regex_match(buffer, matches, match_default)) {
       m_buffers.push_back(scene_file_t::buffer_t(name, m_width, m_height));
     } else {
-      type_error("buffer", "'default', '[width]x[height]' or 'load_image [image]'.");
+      type_error("buffer", "'load_image [image]', 'load_cubemap [cubemap]', '[width]x[height]' or 'default'.");
       return false;
     }
   }
   
-  return true;
-}
-
-bool scene_file_t::parse_cubemaps(Yaml::Node& node) {
-  Yaml::Node& cubemaps = node["cubemaps"];
-  if (cubemaps.IsNone()) return true;
-  else if (!expect_map(cubemaps, "cubemaps")) return false;
-
-  std::regex match_cubemap("load_cubemap (.*)");
-  
-  for (auto it = cubemaps.Begin(); it != cubemaps.End(); it++) {
-    std::string name = (*it).first;
-    Yaml::Node& body = (*it).second;
-    if (!expect_string(body, name.c_str())) return false;
-
-    std::string cubemap = body.As<std::string>();
-    std::smatch matches;
-
-    if (std::regex_match(cubemap, matches, match_cubemap)) {
-      std::string src = matches[1].str();
-      std::filesystem::path full = m_base / std::filesystem::path(src);
-      m_cubemaps.push_back(cubemap_t(name, full.u8string()));
-    } else {
-      type_error("cubemap", "'load_cubemap [cubemap]'");
-      return false;
-    }
-  }
-
   return true;
 }
 

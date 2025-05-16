@@ -114,7 +114,6 @@ private:
   bool expect_string(Yaml::Node& root, std::string name);
   bool parse_scene(Yaml::Node& node);
   bool parse_buffers(Yaml::Node& node);
-  bool parse_cubemaps(Yaml::Node& node);
   bool parse_shaders(Yaml::Node& node);
   bool parse_renderer(Yaml::Node& node);
 
