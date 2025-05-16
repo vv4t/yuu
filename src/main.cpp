@@ -6,11 +6,19 @@
 #include "window.hpp"
 
 int main(int argc, const char *argv[]) {
-  std::string src(argv[1]);
+  std::string src("scene.yml");
+
+  if (argc == 2) {
+    src = std::string(argv[1]);
+  } else if (argc != 1) {
+    std::cerr << "usage: " << argv[0] << " [scene]" << std::endl;
+    return 1;
+  }
+
   scene_file_t scene_file(src);
   
   if (!scene_file.validate()) {
-    return false;
+    return 1;
   }
   
   input_t input;

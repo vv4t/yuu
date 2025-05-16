@@ -1,0 +1,6 @@
+scene:
+  shaders:
+    hello:
+      src: hello.glsl
+  renderer:
+    - hello
