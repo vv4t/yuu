@@ -2,13 +2,14 @@
 #define SCENE_HPP
 
 #include "scene_file.hpp"
+#include "bindable.hpp"
 #include "texture.hpp"
 #include "cubemap.hpp"
 #include "target.hpp"
 #include "shader.hpp"
+#include "input.hpp"
 #include "mesh.hpp"
 #include "ubo.hpp"
-#include "bindable.hpp"
 #include <vector>
 
 class scene_t {
@@ -32,17 +33,23 @@ private:
   std::map<std::string, shader_t> m_shaders;
   std::vector<pass_t> m_passes;
 
+  float m_cursor_x;
+  float m_cursor_y;
+
   mesh_t m_mesh;
   ubo_t m_ubo;
+  input_t& m_input;
   float m_time;
   int m_width;
   int m_height;
 
 public:
-  scene_t(scene_file_t& file);
+  scene_t(input_t& input);
   
   void render();
   
+  void handle_input();
+  void load_from_file(scene_file_t& file);
   void load_image(std::string name, std::string src);
   void load_cubemap(std::string name, std::string src);
   void add_buffer(std::string name, int width, int height);

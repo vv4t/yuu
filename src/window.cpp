@@ -60,6 +60,12 @@ bool window_t::poll() {
     case SDL_KEYDOWN:
       m_input.key_event(event.key.keysym.sym, true);
       break;
+    case SDL_MOUSEBUTTONUP:
+      m_input.button_event(event.button.button, false);
+      break;
+    case SDL_MOUSEBUTTONDOWN:
+      m_input.button_event(event.button.button, true);
+      break;
     case SDL_MOUSEMOTION:
       if (m_cursor_lock) {
         m_mouse_x += event.motion.xrel;
@@ -71,8 +77,6 @@ bool window_t::poll() {
       m_input.move_event(m_mouse_x / (float) m_width, 1.0 - m_mouse_y / (float) m_height);
       break;
     case SDL_TEXTINPUT:
-    case SDL_MOUSEBUTTONUP:
-    case SDL_MOUSEBUTTONDOWN:
       break;
     }
   }

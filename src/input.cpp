@@ -4,6 +4,7 @@
 input_t::input_t() {
   std::fill(std::begin(m_axis), std::end(m_axis), 0.0);
   std::fill(std::begin(m_keys), std::end(m_keys), std::pair<int, int>(0, -1));
+  std::fill(std::begin(m_buttons), std::end(m_buttons), std::pair<int, int>(0, -1));
   m_num_keys = 0;
   m_move1 = -1;
   m_move2 = -1;
@@ -18,12 +19,22 @@ void input_t::bind_move(int axis1, int axis2) {
   m_move2 = axis2;
 }
 
+void input_t::bind_button(int axis1, int button) {
+  m_buttons[button].first = axis1;
+}
+
 void input_t::key_event(int key, bool action) {
   for (int i = 0; i < m_num_keys; i++) {
     if (m_keys[i].second == key) {
       m_axis[m_keys[i].first] = action ? 1.0 : 0.0;
       break;
     }
+  }
+}
+
+void input_t::button_event(int button, bool action) {
+  if (m_buttons[button].first >= 0) {
+    m_axis[m_buttons[button].first] = action ? 1.0 : 0.0;
   }
 }
 

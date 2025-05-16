@@ -1,16 +1,27 @@
 #include "scene.hpp"
 
+enum input_axis {
+  AXIS_CURSOR_X,
+  AXIS_CURSOR_Y,
+  AXIS_MOUSE
+};
+
 static target_t create_target(std::vector<texture_ref_t> output);
 
-scene_t::scene_t(scene_file_t& scene_file)
+scene_t::scene_t(input_t& input)
   : m_ubo(0, {
-    ubo_t::field_t(ubo_t::VEC2, "u_resolution"),
-    ubo_t::field_t(ubo_t::FLOAT, "u_time"),
-    ubo_t::field_t(ubo_t::FLOAT, "u_frame")
+    ubo_t::field_t(ubo_t::VEC4, "iMouse"),
+    ubo_t::field_t(ubo_t::VEC2, "iResolution"),
+    ubo_t::field_t(ubo_t::FLOAT, "iTime"),
   }),
+  m_input(input),
   m_time(0.0) {
   m_passes.reserve(16);
-  
+  m_input.bind_move(AXIS_CURSOR_X, AXIS_CURSOR_Y);
+  m_input.bind_button(AXIS_MOUSE, 1);
+}
+
+void scene_t::load_from_file(scene_file_t& scene_file) {
   m_width = scene_file.get_width();
   m_height = scene_file.get_height();
   
@@ -54,13 +65,37 @@ scene_t::scene_t(scene_file_t& scene_file)
 }
 
 void scene_t::render() {
-  m_time += 0.015;
-  m_ubo.sub("u_time", &m_time, 0, sizeof(m_time));
-  
+  handle_input();
+
+  float mouse [] = {
+    m_input.get_axis(AXIS_CURSOR_X),
+    m_input.get_axis(AXIS_CURSOR_Y),
+    m_cursor_x,
+    m_cursor_y
+  };
+
+  m_ubo.sub("iTime", &m_time, 0, sizeof(m_time));
+  m_ubo.sub("iMouse", mouse, 0, sizeof(mouse));
+
   for (auto& pass : m_passes) {
     pass.bind(m_ubo);
     m_mesh.draw();
   }
+  
+  m_time += 0.015;
+}
+
+void scene_t::handle_input() {
+  bool mouse_down = m_cursor_x < 0.0;
+
+  if (!mouse_down && m_input.get_axis(AXIS_MOUSE)) {
+    m_cursor_x = m_input.get_axis(AXIS_CURSOR_X);
+    m_cursor_y = m_input.get_axis(AXIS_CURSOR_Y);
+  }
+  
+  float sgn = m_input.get_axis(AXIS_MOUSE) ? -1.0 : 1.0;
+  m_cursor_x = sgn * std::abs(m_cursor_x);
+  m_cursor_y = sgn * std::abs(m_cursor_y);
 }
 
 void scene_t::load_image(std::string name, std::string src) {
@@ -134,11 +169,10 @@ target_t create_target(std::vector<texture_ref_t> output) {
 void scene_t::pass_t::bind(ubo_t& ubo) {
   glViewport(0, 0, m_width, m_height);
   float resolution[] = { (float) m_width, (float) m_height };
-  ubo.sub("u_resolution", resolution, 0, sizeof(resolution));
+  ubo.sub("iResolution", resolution, 0, sizeof(resolution));
   
   m_shader.bind();
-  for (unsigned long int i = 0; i < m_bindings.size(); i++) {
+  for (unsigned long int i = 0; i < m_bindings.size(); i++)
     m_bindings[i].get().bind(i);
-  }
   m_target.bind();
 }

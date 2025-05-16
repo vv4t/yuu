@@ -10,6 +10,7 @@ private:
   int m_move1;
   int m_move2;
   
+  std::array<std::pair<int, int>, 4> m_buttons;
   std::array<std::pair<int, int>, 16> m_keys;
   int m_num_keys;
 
@@ -17,8 +18,10 @@ public:
   input_t();
   float get_axis(int axis) const;
   void bind_key(int axis, int key);
+  void bind_button(int axis, int button);
   void bind_move(int axis1, int axis2);
   void key_event(int key, bool action);
+  void button_event(int key, bool action);
   void move_event(float x, float y);
 };
 
