@@ -1,0 +1,13 @@
+scene:
+  logic:
+    input: mx,my,w,a,s,d,m1,m3
+    data:
+      - vec2 pos
+      - float size
+    scripts:
+      - movement.lua
+  shaders:
+    scene:
+      src: scene.glsl
+  renderer:
+    - scene

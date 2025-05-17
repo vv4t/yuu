@@ -8,7 +8,7 @@ SRC_H=$(wildcard src/*.h)
 INCLUDE=-Iinclude
 
 default: build/yuu
-	./build/yuu demo/input/scene.yml
+	./build/yuu demo/script/scene.yml
 
 build/yuu: $(OBJ)
 	mkdir -p build

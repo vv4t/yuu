@@ -162,6 +162,7 @@ bool scene_file_t::parse_logic(Yaml::Node& node) {
   if (logic.IsNone()) return true;
   else if (!expect_map(logic, "logic")) return false;
 
+  if (!parse_logic_input(logic)) return false;
   if (!parse_logic_data(logic)) return false;
   if (!parse_logic_scripts(logic)) return false;
 
@@ -169,10 +170,11 @@ bool scene_file_t::parse_logic(Yaml::Node& node) {
 }
 
 bool scene_file_t::parse_logic_scripts(Yaml::Node& node) {
-  Yaml::Node& data = node["scripts"];
-  if (!expect_array(data, "scripts")) return false;
+  Yaml::Node& scripts = node["scripts"];
+  if (scripts.IsNone()) return true;
+  if (!expect_array(scripts, "scripts")) return false;
   
-  for (auto it = data.Begin(); it != data.End(); it++) {
+  for (auto it = scripts.Begin(); it != scripts.End(); it++) {
     Yaml::Node& body = (*it).second;
     if (!expect_string(body, "script")) return false;
     std::string script = body.As<std::string>();
@@ -184,8 +186,19 @@ bool scene_file_t::parse_logic_scripts(Yaml::Node& node) {
   return true;
 }
 
+bool scene_file_t::parse_logic_input(Yaml::Node& node) {
+  Yaml::Node& input = node["input"];
+  if (input.IsNone()) return true;
+  if (!expect_string(input, "input")) return false;
+  
+  m_input = split_string(input.As<std::string>(), ',');
+  
+  return true;
+}
+
 bool scene_file_t::parse_logic_data(Yaml::Node& node) {
   Yaml::Node& data = node["data"];
+  if (data.IsNone()) return true;
   if (!expect_array(data, "data")) return false;
   
   std::regex match_field("(float|vec2|vec3|vec4) ([a-zA-Z0-9_]+)");

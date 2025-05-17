@@ -17,8 +17,8 @@ scene_t::scene_t(input_t& input, scene_file_t& scene_file)
     m_width(scene_file.get_width()), 
     m_height(scene_file.get_height()) {
   m_passes.reserve(16);
-  m_input.bind_move(AXIS_CURSOR_X, AXIS_CURSOR_Y);
-  m_input.bind_button(AXIS_MOUSE, 1);
+
+  input_register(scene_file.get_input());
 
   for (auto& data : scene_file.get_data()) {
     add_data(type_from_string(data.get_type()), data.get_name());
@@ -50,20 +50,9 @@ scene_t::scene_t(input_t& input, scene_file_t& scene_file)
 }
 
 void scene_t::render() {
-  handle_input();
-
-  m_logic.update();
+  m_logic.update(m_input);
   m_ubo.sub("_pad_", m_logic.get_data().data(), sizeof(float), m_logic.get_data().size() * sizeof(float));
-
-  float mouse [] = {
-    m_input.get_axis(AXIS_CURSOR_X),
-    m_input.get_axis(AXIS_CURSOR_Y),
-    m_cursor_x,
-    m_cursor_y
-  };
-
   m_ubo.sub("iTime", &m_time, 0, sizeof(m_time));
-  m_ubo.sub("iMouse", mouse, 0, sizeof(mouse));
 
   for (auto& pass : m_passes) {
     pass.bind(m_ubo);
@@ -73,17 +62,17 @@ void scene_t::render() {
   m_time += 0.015;
 }
 
-void scene_t::handle_input() {
-  bool mouse_down = m_cursor_x < 0.0;
-
-  if (!mouse_down && m_input.get_axis(AXIS_MOUSE)) {
-    m_cursor_x = m_input.get_axis(AXIS_CURSOR_X);
-    m_cursor_y = m_input.get_axis(AXIS_CURSOR_Y);
+void scene_t::input_register(std::vector<std::string> input) {
+  int axis = 0;
+  for (std::string key : input) {
+    if (key == "mx") m_input.bind_move1(axis++);
+    else if (key == "my") m_input.bind_move2(axis++);
+    else if (key == "m1") m_input.bind_button(axis++, 1);
+    else if (key == "m2") m_input.bind_button(axis++, 2);
+    else if (key == "m3") m_input.bind_button(axis++, 3);
+    else if (key.length() == 1) m_input.bind_key(axis++, key[0]);
+    else throw std::runtime_error("unknown input: " + key);
   }
-  
-  float sgn = m_input.get_axis(AXIS_MOUSE) ? -1.0 : 1.0;
-  m_cursor_x = sgn * std::abs(m_cursor_x);
-  m_cursor_y = sgn * std::abs(m_cursor_y);
 }
 
 void scene_t::load_image(std::string name, std::string src) {
@@ -196,7 +185,6 @@ ubo_t::type_t type_from_string(std::string type_string) {
 
 std::vector<ubo_t::field_t> make_fields(scene_file_t& scene_file) {
   std::vector<ubo_t::field_t> fields = {
-    ubo_t::field_t(ubo_t::VEC4, "iMouse"),
     ubo_t::field_t(ubo_t::VEC2, "iResolution"),
     ubo_t::field_t(ubo_t::FLOAT, "iTime"),
     ubo_t::field_t(ubo_t::FLOAT, "_pad_"),

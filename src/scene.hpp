@@ -34,9 +34,6 @@ private:
   std::map<std::string, shader_t> m_shaders;
   std::vector<pass_t> m_passes;
 
-  float m_cursor_x;
-  float m_cursor_y;
-
   logic_t m_logic;
   mesh_t m_mesh;
   ubo_t m_ubo;
@@ -53,7 +50,7 @@ private:
   void add_shader(std::string name, std::string src, std::vector<std::string> channels);
   void add_pass(std::string shader, std::vector<std::string> input, std::vector<std::string> output);
   
-  void handle_input();
+  void input_register(std::vector<std::string> input);
 
 public:
   scene_t(input_t& input, scene_file_t& file);

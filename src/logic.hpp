@@ -6,6 +6,7 @@ extern "C" {
 }
 
 #include "ubo.hpp"
+#include "input.hpp"
 #include "scene_file.hpp"
 #include <vector>
 
@@ -29,7 +30,7 @@ public:
   logic_t();
   ~logic_t();
   
-  void update();
+  void update(input_t& input);
   void add_script(std::string name);
   void define_float(std::string name);
   void define_vec2(std::string name);

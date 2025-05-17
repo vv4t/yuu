@@ -114,6 +114,7 @@ private:
   bool m_failed;
   
   std::vector<data_t> m_data;
+  std::vector<std::string> m_input;
   std::vector<std::string> m_scripts;
   std::vector<cubemap_t> m_cubemaps;
   std::vector<image_t> m_images;
@@ -133,14 +134,16 @@ private:
   bool parse_shaders(Yaml::Node& node);
   bool parse_renderer(Yaml::Node& node);
   bool parse_logic(Yaml::Node& node);
+  bool parse_logic_input(Yaml::Node& node);
   bool parse_logic_data(Yaml::Node& node);
   bool parse_logic_scripts(Yaml::Node& node);
 
 public:
   scene_file_t(std::string src);
   bool validate();
-  std::vector<data_t> get_data() { return m_data; }
+  std::vector<std::string> get_input() { return m_input; }
   std::vector<std::string> get_scripts() { return m_scripts; }
+  std::vector<data_t> get_data() { return m_data; }
   std::vector<buffer_t> get_buffers() { return m_buffers; }
   std::vector<image_t> get_images() { return m_images; }
   std::vector<cubemap_t> get_cubemaps() { return m_cubemaps; }

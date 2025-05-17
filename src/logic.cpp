@@ -66,11 +66,20 @@ void logic_t::refresh_data() {
   }
 }
 
-void logic_t::update() {
+void logic_t::update(input_t& input) {
   if (!m_enabled) return;
 
   lua_getglobal(L, "update");
-  if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+  if (!lua_isfunction(L, -1)) {
+    std::cerr << "error: logic is missing update function." << std::endl;
+    std::exit(1);
+  }
+
+  for (int i = 0; i < input.size(); i++) {
+    lua_pushnumber(L, input.get_axis(i));
+  }
+
+  if (lua_pcall(L, input.size(), 0, 0) != LUA_OK) {
     std::cerr << "error: " << lua_tostring(L, -1) << std::endl;
     std::exit(1);
   }
