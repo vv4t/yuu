@@ -26,12 +26,15 @@ trace_t sdf(vec3 p);
 vec3 sdf_normal(vec3 p) {
   float dp = 0.001;
   
-  trace_t f = sdf(p);
-  trace_t df_dx = sdf(p + vec3(dp, 0.0, 0.0));
-  trace_t df_dy = sdf(p + vec3(0.0, dp, 0.0));
-  trace_t df_dz = sdf(p + vec3(0.0, 0.0, dp));
+  trace_t dx_a = sdf(p - vec3(dp, 0.0, 0.0));
+  trace_t dy_a = sdf(p - vec3(0.0, dp, 0.0));
+  trace_t dz_a = sdf(p - vec3(0.0, 0.0, dp));
   
-  return normalize(vec3(df_dx.d, df_dy.d, df_dz.d) - f.d);
+  trace_t dx_b = sdf(p + vec3(dp, 0.0, 0.0));
+  trace_t dy_b = sdf(p + vec3(0.0, dp, 0.0));
+  trace_t dz_b = sdf(p + vec3(0.0, 0.0, dp));
+  
+  return normalize(vec3(dx_b.d - dx_a.d, dy_b.d - dy_a.d, dz_b.d - dz_a.d));
 }
 
 trace_t ray_march(vec3 ro, vec3 rd) {
