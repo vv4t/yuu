@@ -1,4 +1,12 @@
 scene:
+  logic:
+    input: mx,my,w,a,s,d
+    data:
+      - vec3 view_pos
+      - float yaw
+      - float pitch
+    scripts:
+      - move.lua
   buffers:
     sky: load_cubemap ../assets/bluesky
   shaders:
