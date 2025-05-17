@@ -87,6 +87,7 @@ bool scene_file_t::parse_scene(Yaml::Node& node) {
       && name != "buffers"
       && name != "shaders"
       && name != "renderer"
+      && name != "logic"
     ) {
       error("invalid key '" + name + "'.");
       return false;
@@ -109,6 +110,7 @@ bool scene_file_t::parse_scene(Yaml::Node& node) {
   if (!parse_buffers(scene)) return false;
   if (!parse_shaders(scene)) return false;
   if (!parse_renderer(scene)) return false;
+  if (!parse_logic(scene)) return false;
   
   return true;
 }
@@ -145,11 +147,67 @@ bool scene_file_t::parse_renderer(Yaml::Node& node) {
       input = split_string(matches[2].str(), ',');
       output = split_string(matches[3].str(), ',');
     } else {
-      type_error("pass", "[shader] [input] -> [output]");
+      type_error(pass, "[shader] [input] -> [output]");
       return false;
     }
     
     m_renderer.push_back(scene_file_t::pass_t(shader, input, output));
+  }
+  
+  return true;
+}
+
+bool scene_file_t::parse_logic(Yaml::Node& node) {
+  Yaml::Node& logic = node["logic"];
+  if (logic.IsNone()) return true;
+  else if (!expect_map(logic, "logic")) return false;
+
+  if (!parse_logic_data(logic)) return false;
+  if (!parse_logic_scripts(logic)) return false;
+
+  return true;
+}
+
+bool scene_file_t::parse_logic_scripts(Yaml::Node& node) {
+  Yaml::Node& data = node["scripts"];
+  if (!expect_array(data, "scripts")) return false;
+  
+  for (auto it = data.Begin(); it != data.End(); it++) {
+    Yaml::Node& body = (*it).second;
+    if (!expect_string(body, "script")) return false;
+    std::string script = body.As<std::string>();
+
+    std::filesystem::path full = m_base / std::filesystem::path(script);
+    m_scripts.push_back(full.string());
+  }
+
+  return true;
+}
+
+bool scene_file_t::parse_logic_data(Yaml::Node& node) {
+  Yaml::Node& data = node["data"];
+  if (!expect_array(data, "data")) return false;
+  
+  std::regex match_field("(float|vec2|vec3|vec4) ([a-zA-Z0-9_]+)");
+  
+  for (auto it = data.Begin(); it != data.End(); it++) {
+    Yaml::Node& body = (*it).second;
+    if (!expect_string(body, "field")) return false;
+    std::string field = body.As<std::string>();
+    std::smatch matches;
+
+    std::string name;
+    std::string type;
+
+    if (std::regex_match(field, matches, match_field)) {
+      type = matches[1].str();
+      name = matches[2].str();
+    } else {
+      type_error(field, "'float|vec2|vec3|vec4 [name]'");
+      return false;
+    }
+    
+    m_data.push_back(scene_file_t::data_t(type, name));
   }
   
   return true;

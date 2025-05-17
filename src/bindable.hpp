@@ -1,5 +1,5 @@
-#ifndef BINDABLE_H
-#define BINDABLE_H
+#ifndef BINDABLE_HPP
+#define BINDABLE_HPP
 
 class bindable_t {
 public:

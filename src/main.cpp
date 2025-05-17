@@ -23,8 +23,7 @@ int main(int argc, const char *argv[]) {
   
   input_t input;
   window_t window(scene_file.get_width(), scene_file.get_height(), "yuu", input);
-  scene_t scene(input);
-  scene.load_from_file(scene_file);
+  scene_t scene(input, scene_file);
   
   int old_time = window.get_time();
   int lag_time = 0;

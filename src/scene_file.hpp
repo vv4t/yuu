@@ -26,6 +26,20 @@ public:
     int get_height() { return m_height; }
   };
   
+  class data_t {
+  private:
+    std::string m_type;
+    std::string m_name;
+
+  public:
+    data_t(std::string type, std::string name)
+      : m_type(type),
+        m_name(name) {}
+    
+    std::string get_type() { return m_type; }
+    std::string get_name() { return m_name; }
+  };
+
   class image_t {
   private:
     std::string m_name;
@@ -99,6 +113,8 @@ private:
   int m_height;
   bool m_failed;
   
+  std::vector<data_t> m_data;
+  std::vector<std::string> m_scripts;
   std::vector<cubemap_t> m_cubemaps;
   std::vector<image_t> m_images;
   std::vector<buffer_t> m_buffers;
@@ -116,10 +132,15 @@ private:
   bool parse_buffers(Yaml::Node& node);
   bool parse_shaders(Yaml::Node& node);
   bool parse_renderer(Yaml::Node& node);
+  bool parse_logic(Yaml::Node& node);
+  bool parse_logic_data(Yaml::Node& node);
+  bool parse_logic_scripts(Yaml::Node& node);
 
 public:
   scene_file_t(std::string src);
   bool validate();
+  std::vector<data_t> get_data() { return m_data; }
+  std::vector<std::string> get_scripts() { return m_scripts; }
   std::vector<buffer_t> get_buffers() { return m_buffers; }
   std::vector<image_t> get_images() { return m_images; }
   std::vector<cubemap_t> get_cubemaps() { return m_cubemaps; }

@@ -6,66 +6,54 @@ enum input_axis {
   AXIS_MOUSE
 };
 
+static std::vector<ubo_t::field_t> make_fields(scene_file_t& scene_file);
 static target_t create_target(std::vector<texture_ref_t> output);
+static ubo_t::type_t type_from_string(std::string type_string);
 
-scene_t::scene_t(input_t& input)
-  : m_ubo(0, {
-    ubo_t::field_t(ubo_t::VEC4, "iMouse"),
-    ubo_t::field_t(ubo_t::VEC2, "iResolution"),
-    ubo_t::field_t(ubo_t::FLOAT, "iTime"),
-  }),
-  m_input(input),
-  m_time(0.0) {
+scene_t::scene_t(input_t& input, scene_file_t& scene_file)
+  : m_ubo(0, make_fields(scene_file)),
+    m_input(input),
+    m_time(0.0),
+    m_width(scene_file.get_width()), 
+    m_height(scene_file.get_height()) {
   m_passes.reserve(16);
   m_input.bind_move(AXIS_CURSOR_X, AXIS_CURSOR_Y);
   m_input.bind_button(AXIS_MOUSE, 1);
-}
 
-void scene_t::load_from_file(scene_file_t& scene_file) {
-  m_width = scene_file.get_width();
-  m_height = scene_file.get_height();
+  for (auto& data : scene_file.get_data()) {
+    add_data(type_from_string(data.get_type()), data.get_name());
+  }
+
+  for (auto& script : scene_file.get_scripts()) {
+    add_script(script);
+  }
   
   for (auto& buffer : scene_file.get_buffers()) {
-    add_buffer(
-      buffer.get_name(),
-      buffer.get_width(),
-      buffer.get_height()
-    );
+    add_buffer(buffer.get_name(), buffer.get_width(), buffer.get_height());
   }
   
   for (auto& image : scene_file.get_images()) {
-    load_image(
-      image.get_name(),
-      image.get_src()
-    );
+    load_image(image.get_name(), image.get_src());
   }
   
   for (auto& cubemap : scene_file.get_cubemaps()) {
-    load_cubemap(
-      cubemap.get_name(),
-      cubemap.get_src()
-    );
+    load_cubemap(cubemap.get_name(), cubemap.get_src());
   }
   
   for (auto& shader : scene_file.get_shaders()) {
-    add_shader(
-      shader.get_name(),
-      shader.get_src(),
-      shader.get_channels()
-    );
+    add_shader(shader.get_name(), shader.get_src(), shader.get_channels());
   }
   
   for (auto& pass : scene_file.get_renderer()) {
-    add_pass(
-      pass.get_shader(),
-      pass.get_input(),
-      pass.get_output()
-    );
+    add_pass(pass.get_shader(), pass.get_input(), pass.get_output());
   }
 }
 
 void scene_t::render() {
   handle_input();
+
+  m_logic.update();
+  m_ubo.sub("_pad_", m_logic.get_data().data(), sizeof(float), m_logic.get_data().size() * sizeof(float));
 
   float mouse [] = {
     m_input.get_axis(AXIS_CURSOR_X),
@@ -108,6 +96,27 @@ void scene_t::load_cubemap(std::string name, std::string src) {
 
 void scene_t::add_buffer(std::string name, int width, int height) {
   m_textures.try_emplace(name, width, height, GL_RGBA, GL_RGBA32F, GL_FLOAT);
+}
+
+void scene_t::add_script(std::string src) {
+  m_logic.add_script(src);
+}
+
+void scene_t::add_data(ubo_t::type_t type, std::string name) {
+  switch (type) {
+  case ubo_t::type_t::FLOAT:
+    m_logic.define_float(name);
+    break;
+  case ubo_t::type_t::VEC2:
+    m_logic.define_vec2(name);
+    break;
+  case ubo_t::type_t::VEC3:
+    m_logic.define_vec3(name);
+    break;
+  case ubo_t::type_t::VEC4:
+    m_logic.define_vec4(name);
+    break;
+  }
 }
 
 void scene_t::add_shader(std::string name, std::string src, std::vector<std::string> channels) {
@@ -156,6 +165,17 @@ scene_t::pass_t::pass_t(shader_t& shader, std::vector<bindable_ref_t> input, std
     m_width(width),
     m_height(height) {}
 
+void scene_t::pass_t::bind(ubo_t& ubo) {
+  glViewport(0, 0, m_width, m_height);
+  float resolution[] = { (float) m_width, (float) m_height };
+  ubo.sub("iResolution", resolution, 0, sizeof(resolution));
+  
+  m_shader.bind();
+  for (unsigned long int i = 0; i < m_bindings.size(); i++)
+    m_bindings[i].get().bind(i);
+  m_target.bind();
+}
+
 target_t create_target(std::vector<texture_ref_t> output) {
   std::vector<target_t::binding_t> bindings;
   
@@ -166,13 +186,25 @@ target_t create_target(std::vector<texture_ref_t> output) {
   return target_t(bindings);
 }
 
-void scene_t::pass_t::bind(ubo_t& ubo) {
-  glViewport(0, 0, m_width, m_height);
-  float resolution[] = { (float) m_width, (float) m_height };
-  ubo.sub("iResolution", resolution, 0, sizeof(resolution));
+ubo_t::type_t type_from_string(std::string type_string) {
+  if (type_string == "float") return ubo_t::type_t::FLOAT;
+  if (type_string == "vec2") return ubo_t::type_t::VEC2;
+  if (type_string == "vec3") return ubo_t::type_t::VEC3;
+  if (type_string == "vec4") return ubo_t::type_t::VEC4;
+  throw std::runtime_error("unknown type: " + type_string);
+}
+
+std::vector<ubo_t::field_t> make_fields(scene_file_t& scene_file) {
+  std::vector<ubo_t::field_t> fields = {
+    ubo_t::field_t(ubo_t::VEC4, "iMouse"),
+    ubo_t::field_t(ubo_t::VEC2, "iResolution"),
+    ubo_t::field_t(ubo_t::FLOAT, "iTime"),
+    ubo_t::field_t(ubo_t::FLOAT, "_pad_"),
+  };
   
-  m_shader.bind();
-  for (unsigned long int i = 0; i < m_bindings.size(); i++)
-    m_bindings[i].get().bind(i);
-  m_target.bind();
+  for (auto& data : scene_file.get_data()) {
+    fields.push_back(ubo_t::field_t(type_from_string(data.get_type()), data.get_name()));
+  }
+
+  return fields;
 }

@@ -1,7 +1,7 @@
 .PHONY=default build run
 
 CFLAGS=-O3 -Wall
-LDFLAGS=-lSDL2 -lSDL2_image -lm
+LDFLAGS=-lSDL2 -lSDL2_image -lm -llua
 SRC=$(wildcard src/*.cpp)
 OBJ=$(patsubst src/%.cpp, bin/%.o, $(SRC))
 SRC_H=$(wildcard src/*.h)
